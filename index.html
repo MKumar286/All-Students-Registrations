@@ -542,6 +542,14 @@ Total Placed Students :
 <option value="">Shortlisted by Company</option>
 </select>
 
+<select id="paperTest1Filter">
+<option value="">Pen & Paper Test -1 Status</option>
+</select>
+
+<select id="paperTest2Filter">
+<option value="">Pen & Paper Test -2 Status</option>
+</select>
+
 </div>
 
 <div class="table-container">
@@ -566,11 +574,13 @@ const csvURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSwSxs2JtEUGewXFCv
 
 let allData=[];
 
-// Key mappings to safely detect sheet columns regardless of spacing/capitalization
+// Dynamic Header Keys
 let branchKey = "";
 let appliedCompanyKey = "";
 let tpoKey = "";
 let companyShortlistKey = "";
+let paperTest1Key = "";
+let paperTest2Key = "";
 let rollKey = "";
 
 /* LOAD CSV */
@@ -597,13 +607,24 @@ return;
 
 }
 
-// Dynamically identify columns to prevent space-mismatch bugs
+// Dynamically identify matching columns with loose casing/spacing rules
 let headers = Object.keys(allData[0]);
 branchKey = headers.find(h => h.toLowerCase().trim().includes("branch")) || "Branch";
 appliedCompanyKey = headers.find(h => h.toLowerCase().trim().replace(/\s+/g, '').includes("appliedcompany")) || "Applied Company";
 tpoKey = headers.find(h => h.toLowerCase().trim().includes("tpo")) || "Shortlisted by TPO";
 companyShortlistKey = headers.find(h => h.toLowerCase().trim().includes("shortlisted by company")) || "Shortlisted by Company";
 rollKey = headers.find(h => h.toLowerCase().trim().includes("roll")) || "Roll Number";
+
+// Explicitly look for unique keywords distinguishing Test 1 from Test 2
+paperTest1Key = headers.find(h => {
+    let clean = h.toLowerCase().trim().replace(/\s+/g, '');
+    return (clean.includes("pen") || clean.includes("paper")) && (clean.includes("test-1") || clean.includes("test1"));
+}) || "";
+
+paperTest2Key = headers.find(h => {
+    let clean = h.toLowerCase().trim().replace(/\s+/g, '');
+    return (clean.includes("pen") || clean.includes("paper")) && (clean.includes("test-2") || clean.includes("test2"));
+}) || "";
 
 buildTable(allData);
 
@@ -742,6 +763,14 @@ let companyShortlist=[
 ...new Set(data.map(d=>(d[companyShortlistKey] || "").trim()).filter(Boolean))
 ];
 
+let paperTests1= paperTest1Key ? [
+...new Set(data.map(d=>(d[paperTest1Key] || "").trim()).filter(Boolean))
+] : [];
+
+let paperTests2= paperTest2Key ? [
+...new Set(data.map(d=>(d[paperTest2Key] || "").trim()).filter(Boolean))
+] : [];
+
 /* SELECTS */
 
 let branchSelect=document.getElementById("branchFilter");
@@ -752,6 +781,10 @@ let tpoSelect=document.getElementById("tpoFilter");
 
 let companyShortlistSelect=document.getElementById("companyShortlistFilter");
 
+let paperTest1Select=document.getElementById("paperTest1Filter");
+
+let paperTest2Select=document.getElementById("paperTest2Filter");
+
 /* RESET */
 
 branchSelect.innerHTML='<option value="">All Branches</option>';
@@ -761,6 +794,10 @@ appliedCompanySelect.innerHTML='<option value="">Applied Company</option>';
 tpoSelect.innerHTML='<option value="">Shortlisted by TPO</option>';
 
 companyShortlistSelect.innerHTML='<option value="">Shortlisted by Company</option>';
+
+paperTest1Select.innerHTML='<option value="">Pen & Paper Test -1 Status</option>';
+
+paperTest2Select.innerHTML='<option value="">Pen & Paper Test -2 Status</option>';
 
 /* ADD OPTIONS */
 
@@ -778,6 +815,14 @@ tpoSelect.add(new Option(v,v))
 
 companyShortlist.sort().forEach(v=>
 companyShortlistSelect.add(new Option(v,v))
+);
+
+paperTests1.sort().forEach(v=>
+paperTest1Select.add(new Option(v,v))
+);
+
+paperTests2.sort().forEach(v=>
+paperTest2Select.add(new Option(v,v))
 );
 
 }
@@ -818,6 +863,10 @@ let tpo=document.getElementById("tpoFilter").value;
 
 let companyShort=document.getElementById("companyShortlistFilter").value;
 
+let paperTest1=document.getElementById("paperTest1Filter").value;
+
+let paperTest2=document.getElementById("paperTest2Filter").value;
+
 /* FILTER */
 
 let filtered=allData.filter(row=>{
@@ -828,6 +877,8 @@ let rowBranch = (row[branchKey] || "").toString().trim();
 let rowAppliedComp = (row[appliedCompanyKey] || "").toString().trim();
 let rowTpo = (row[tpoKey] || "").toString().trim();
 let rowCompanyShort = (row[companyShortlistKey] || "").toString().trim();
+let rowPaperTest1 = paperTest1Key ? (row[paperTest1Key] || "").toString().trim() : "";
+let rowPaperTest2 = paperTest2Key ? (row[paperTest2Key] || "").toString().trim() : "";
 
 return text.includes(search)
 
@@ -837,7 +888,11 @@ return text.includes(search)
 
 && (tpo==="" || rowTpo===tpo)
 
-&& (companyShort==="" || rowCompanyShort===companyShort);
+&& (companyShort==="" || rowCompanyShort===companyShort)
+
+&& (paperTest1==="" || rowPaperTest1===paperTest1)
+
+&& (paperTest2==="" || rowPaperTest2===paperTest2);
 
 });
 
@@ -862,6 +917,12 @@ document.getElementById("tpoFilter")
 .addEventListener("change",applyFilters);
 
 document.getElementById("companyShortlistFilter")
+.addEventListener("change",applyFilters);
+
+document.getElementById("paperTest1Filter")
+.addEventListener("change",applyFilters);
+
+document.getElementById("paperTest2Filter")
 .addEventListener("change",applyFilters);
 
 </script>
