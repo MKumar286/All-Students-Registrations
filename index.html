@@ -821,42 +821,36 @@ genderSelect.add(new Option(v,v))
 
 }
 
-function updateCompanyFilter(filteredData){
+function updateDynamicFilters(filteredData){
 
-let companySelect =
-document.getElementById("companyFilter");
+let appliedCompanySelect = document.getElementById("AppliedCompanyfilter");
+let companySelect = document.getElementById("companyFilter");
 
-/* CURRENT SELECTION */
+let currentApplied = appliedCompanySelect.value;
+let currentCompany = companySelect.value;
 
-let currentValue = companySelect.value;
-
-/* UNIQUE COMPANIES */
-
-let companies = [
-...new Set(
-filteredData
-.map(d => d["Company Placed"])
-.filter(Boolean)
-)
+/* UNIQUE APPLIED COMPANIES */
+let appliedCompanies = [
+...new Set(filteredData.map(d => d["Applied Company"]).filter(Boolean))
 ];
 
-/* RESET */
+/* UNIQUE PLACED COMPANIES */
+let companies = [
+...new Set(filteredData.map(d => d["Company Placed"]).filter(Boolean))
+];
 
-companySelect.innerHTML =
-'<option value="">All Companies</option>';
+/* RESET & RESTORE APPLIED */
+appliedCompanySelect.innerHTML = '<option value="">Applied Company</option>';
+appliedCompanies.sort().forEach(v => appliedCompanySelect.add(new Option(v,v)));
+if(appliedCompanies.includes(currentApplied)){
+appliedCompanySelect.value = currentApplied;
+}
 
-/* ADD FILTERED OPTIONS */
-
-companies.sort().forEach(v =>
-companySelect.add(new Option(v,v))
-);
-
-/* RESTORE VALUE IF EXISTS */
-
-if(companies.includes(currentValue)){
-
-companySelect.value = currentValue;
-
+/* RESET & RESTORE PLACED */
+companySelect.innerHTML = '<option value="">All Companies</option>';
+companies.sort().forEach(v => companySelect.add(new Option(v,v)));
+if(companies.includes(currentCompany)){
+companySelect.value = currentCompany;
 }
 
 }
@@ -926,7 +920,7 @@ return text.includes(search)
 
 });
 
-updateCompanyFilter(filtered);
+updateDynamicFilters(filtered);
   
 buildTable(filtered);
 
