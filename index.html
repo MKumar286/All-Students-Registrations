@@ -1,278 +1,363 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Student Registration Dashboard</title>
 
 <style>
-    *{
-        margin:0;
-        padding:0;
-        box-sizing:border-box;
-        font-family:Arial, sans-serif;
-    }
 
-    body{
-        background:#f4f6f9;
-        padding:20px;
-    }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
 
-    .container{
-        max-width:100%;
-        margin:auto;
-    }
+body{
+    background:#f4f6f9;
+    padding:20px;
+}
 
-    h1{
-        text-align:center;
-        margin-bottom:20px;
-        color:#333;
-    }
+.container{
+    width:100%;
+}
 
-    .search-box{
-        margin-bottom:15px;
-    }
+h1{
+    text-align:center;
+    margin-bottom:20px;
+}
 
-    .search-box input{
-        width:100%;
-        padding:10px;
-        border:1px solid #ccc;
-        border-radius:5px;
-        font-size:16px;
-    }
+.search-box{
+    margin-bottom:15px;
+}
 
-    .cards{
-        display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-        gap:15px;
-        margin-bottom:20px;
-    }
+.search-box input{
+    width:100%;
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:5px;
+    font-size:15px;
+}
 
-    .card{
-        background:white;
-        padding:20px;
-        border-radius:10px;
-        text-align:center;
-        box-shadow:0 2px 5px rgba(0,0,0,0.1);
-    }
+.info{
+    margin-bottom:15px;
+    font-weight:bold;
+}
 
-    .card h2{
-        color:#007bff;
-    }
+.table-container{
+    background:white;
+    border-radius:8px;
+    overflow:auto;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    max-height:80vh;
+}
 
-    .table-container{
-        overflow:auto;
-        background:white;
-        border-radius:10px;
-        box-shadow:0 2px 5px rgba(0,0,0,0.1);
-    }
+table{
+    width:100%;
+    border-collapse:collapse;
+}
 
-    table{
-        width:100%;
-        border-collapse:collapse;
-        min-width:2000px;
-    }
+thead th{
+    position:sticky;
+    top:0;
+    background:#0d6efd;
+    color:white;
+    z-index:100;
+}
 
-    th{
-        background:#007bff;
-        color:white;
-        position:sticky;
-        top:0;
-        z-index:10;
-    }
+th,td{
+    border:1px solid #ddd;
+    padding:8px;
+    font-size:13px;
+    white-space:nowrap;
+}
 
-    th,td{
-        border:1px solid #ddd;
-        padding:8px;
-        text-align:left;
-        font-size:13px;
-    }
+tr:nth-child(even){
+    background:#f8f9fa;
+}
 
-    tr:nth-child(even){
-        background:#f9f9f9;
-    }
+tr:hover{
+    background:#e9ecef;
+}
 
-    .selected{
-        background:#d4edda;
-        color:#155724;
-        font-weight:bold;
-    }
+.loading{
+    text-align:center;
+    padding:20px;
+    color:#666;
+}
 
-    .rejected{
-        background:#f8d7da;
-        color:#721c24;
-        font-weight:bold;
-    }
 </style>
 </head>
+
 <body>
 
 <div class="container">
 
-    <h1>Student Registration Dashboard</h1>
+<h1>Student Registration Dashboard</h1>
 
-    <div class="cards">
-        <div class="card">
-            <h2 id="totalStudents">0</h2>
-            <p>Total Records</p>
-        </div>
+<div class="search-box">
+<input type="text" id="searchInput"
+placeholder="Search Student, Roll Number, Company, Branch...">
+</div>
 
-        <div class="card">
-            <h2 id="selectedStudents">0</h2>
-            <p>Selected</p>
-        </div>
+<div class="info">
+Total Records :
+<span id="recordCount">0</span>
+</div>
 
-        <div class="card">
-            <h2 id="shortlistedStudents">0</h2>
-            <p>Shortlisted</p>
-        </div>
-    </div>
+<div class="table-container">
 
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search Student, Roll No, Company...">
-    </div>
+<table id="studentTable">
 
-    <div class="table-container">
-        <table id="studentTable">
-            <thead></thead>
-            <tbody></tbody>
-        </table>
-    </div>
+<thead></thead>
+
+<tbody>
+<tr>
+<td class="loading">Loading data...</td>
+</tr>
+</tbody>
+
+</table>
+
+</div>
 
 </div>
 
 <script>
 
-// Google Sheet CSV Export URL
-const CSV_URL =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vSwSxs2JtEUGewXFCvir7vQJMjsIdS-ODqzBeAQTi_4Wmp73pDTPh27f7qTedZpu_CTmMiBLMLf5lzm/pub?gid=837128863&single=true&output=csv";
+/* ==========================
+   GOOGLE SHEET SETTINGS
+========================== */
+
+const CSV_URL ="https://docs.google.com/spreadsheets/d/e/2PACX-1vSwSxs2JtEUGewXFCvir7vQJMjsIdS-ODqzBeAQTi_4Wmp73pDTPh27f7qTedZpu_CTmMiBLMLf5lzm/pub?gid=837128863&single=true&output=csv";
+
+
+/* ==========================
+   GLOBAL DATA
+========================== */
 
 let sheetData = [];
 
-async function loadData() {
+/* ==========================
+   CLEAN TEXT
+========================== */
 
-    try {
+function cleanText(value){
+
+    return String(value || "")
+        .replace(/[\r\n\t]+/g," ")
+        .replace(/\s+/g," ")
+        .trim();
+}
+
+/* ==========================
+   CSV PARSER
+========================== */
+
+function parseCSV(text){
+
+    const rows = [];
+    const lines = text.split(/\r?\n/);
+
+    for(let line of lines){
+
+        let row = [];
+        let current = "";
+        let insideQuotes = false;
+
+        for(let i=0;i<line.length;i++){
+
+            const char = line[i];
+
+            if(char === '"'){
+
+                insideQuotes = !insideQuotes;
+            }
+            else if(char === "," && !insideQuotes){
+
+                row.push(cleanText(current));
+                current = "";
+            }
+            else{
+
+                current += char;
+            }
+        }
+
+        row.push(cleanText(current));
+
+        if(row.some(cell => cell !== "")){
+            rows.push(row);
+        }
+    }
+
+    return rows;
+}
+
+/* ==========================
+   LOAD DATA
+========================== */
+
+async function loadData(){
+
+    try{
 
         const response = await fetch(CSV_URL);
+
         const csvText = await response.text();
 
-        const rows = csvText.split("\n").map(row =>
-            row.split(",").map(cell =>
-                cell.replace(/^"|"$/g, "").trim()
-            )
-        );
+        if(
+            csvText.startsWith("<!DOCTYPE") ||
+            csvText.startsWith("<html")
+        ){
 
-        const headers = rows[0];
+            document.querySelector("#studentTable tbody")
+            .innerHTML =
+            `<tr>
+                <td>
+                Sheet is not public or URL is incorrect.
+                </td>
+            </tr>`;
+
+            return;
+        }
+
+        const rows = parseCSV(csvText);
+
+        if(rows.length < 2){
+            return;
+        }
+
+        const headers =
+            rows[0].map(h => cleanText(h));
 
         sheetData = rows.slice(1).map(row => {
+
             let obj = {};
-            headers.forEach((header, index) => {
-                obj[header] = row[index] || "";
+
+            headers.forEach((header,index)=>{
+
+                obj[header] =
+                    cleanText(row[index] || "");
             });
+
             return obj;
         });
 
-        updateCards();
+        document.getElementById("recordCount")
+        .innerText = sheetData.length;
+
         renderTable(sheetData);
 
-    } catch(error) {
-        console.error("Error loading CSV:", error);
+    }
+    catch(error){
+
+        console.error(error);
+
+        document.querySelector("#studentTable tbody")
+        .innerHTML =
+        `<tr>
+            <td>Error loading data</td>
+        </tr>`;
     }
 }
 
-function updateCards() {
+/* ==========================
+   RENDER TABLE
+========================== */
 
-    document.getElementById("totalStudents").innerText =
-        sheetData.length;
+function renderTable(data){
 
-    const selected = sheetData.filter(row =>
-        (row["Final Status"] || "")
-        .toLowerCase()
-        .includes("selected")
-    ).length;
-
-    document.getElementById("selectedStudents").innerText =
-        selected;
-
-    const shortlisted = sheetData.filter(row =>
-        (row["Shortlisted by Company"] || "")
-        .toLowerCase()
-        .includes("yes")
-    ).length;
-
-    document.getElementById("shortlistedStudents").innerText =
-        shortlisted;
-}
-
-function renderTable(data) {
-
-    const tableHead =
+    const thead =
         document.querySelector("#studentTable thead");
 
-    const tableBody =
+    const tbody =
         document.querySelector("#studentTable tbody");
 
-    tableHead.innerHTML = "";
-    tableBody.innerHTML = "";
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
 
-    if (data.length === 0) return;
+    if(data.length === 0){
+
+        tbody.innerHTML =
+        `<tr>
+            <td>No Data Found</td>
+        </tr>`;
+
+        return;
+    }
 
     const headers = Object.keys(data[0]);
 
-    tableHead.innerHTML =
-        "<tr>" +
-        headers.map(h => `<th>${h}</th>`).join("") +
-        "</tr>";
+    let headerRow = "<tr>";
 
-    tableBody.innerHTML = data.map(row => {
+    headers.forEach(header => {
 
-        let rowHTML = "<tr>";
+        headerRow +=
+        `<th>${header}</th>`;
+    });
+
+    headerRow += "</tr>";
+
+    thead.innerHTML = headerRow;
+
+    const bodyRows = data.map(row => {
+
+        let tr = "<tr>";
 
         headers.forEach(header => {
 
-            let value = row[header] || "";
-            let cls = "";
-
-            if (header === "Final Status") {
-
-                if (value.toLowerCase().includes("selected"))
-                    cls = "selected";
-
-                if (value.toLowerCase().includes("rejected"))
-                    cls = "rejected";
-            }
-
-            rowHTML += `<td class="${cls}">${value}</td>`;
+            tr +=
+            `<td>${cleanText(row[header])}</td>`;
         });
 
-        rowHTML += "</tr>";
+        tr += "</tr>";
 
-        return rowHTML;
+        return tr;
 
     }).join("");
+
+    tbody.innerHTML = bodyRows;
 }
 
+/* ==========================
+   SEARCH
+========================== */
+
 document.getElementById("searchInput")
-.addEventListener("keyup", function() {
+.addEventListener("keyup", function(){
 
-    const keyword = this.value.toLowerCase();
+    const keyword =
+        this.value.toLowerCase();
 
-    const filtered = sheetData.filter(row =>
-        Object.values(row)
+    const filtered =
+        sheetData.filter(row =>
+
+            Object.values(row)
             .join(" ")
             .toLowerCase()
             .includes(keyword)
-    );
+
+        );
 
     renderTable(filtered);
 });
 
+/* ==========================
+   INITIAL LOAD
+========================== */
+
 loadData();
 
-// Auto refresh every 60 seconds
-setInterval(loadData, 60000);
+/* AUTO REFRESH */
+
+setInterval(loadData,30000);
 
 </script>
 
 </body>
 </html>
+```
