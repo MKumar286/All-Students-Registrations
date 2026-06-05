@@ -527,7 +527,7 @@ Total Placed Students :
 <input type="text" id="search" placeholder="Search student / roll / company">
 
 <select id="batchFilter">
-<option value="">All Batches</option>
+<option value="">Applied Company</option>
 </select>
 
 <select id="branchFilter">
@@ -574,7 +574,6 @@ const csvURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSwSxs2JtEUGewXFCv
 
 let allData=[];
 
-let natureKey="";
 let internKey="";
 
 /* LOAD CSV */
@@ -602,10 +601,6 @@ return;
 }
 
 let headers = Object.keys(allData[0]);
-
-natureKey = headers.find(
-h => h.toLowerCase().includes("nature")
-);
 
 internKey = headers.find(
 h => h.toLowerCase().includes("paid")
@@ -733,7 +728,7 @@ tbody.appendChild(tr);
 function populateFilters(data){
 
 let batches=[
-...new Set(data.map(d=>d["Batch"]).filter(Boolean))
+...new Set(data.map(d=>d["Applied Company"]).filter(Boolean))
 ];
 
 let branches=[
@@ -767,7 +762,7 @@ data.map(d => (d["Gender"] || "").trim())
 
 /* SELECTS */
 
-let batchSelect=document.getElementById("batchFilter");
+let batchSelect=document.getElementById("Applied Company");
 
 let branchSelect=document.getElementById("branchFilter");
 
@@ -781,7 +776,7 @@ let genderSelect=document.getElementById("genderFilter");
 
 /* RESET */
 
-batchSelect.innerHTML='<option value="">All Batches</option>';
+batchSelect.innerHTML='<option value="">Company Applied</option>';
 
 branchSelect.innerHTML='<option value="">All Branches</option>';
 
@@ -907,7 +902,7 @@ let text=JSON.stringify(row).toLowerCase();
 
 return text.includes(search)
 
-&& (batch==="" || row["Batch"]===batch)
+&& (batch==="" || row["Applied Company"]===batch)
 
 && (branch==="" || row["Branch"]===branch)
 
