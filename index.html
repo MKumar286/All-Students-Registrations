@@ -524,29 +524,7 @@ Total Placed Students :
 
 <div class="controls">
 
-<input type="text" id="search" placeholder="Search student / roll / company">
-
-<select id="AppliedCompanyfilter">
-<option value="">Applied Company</option>
-</select>
-
-<select id="branchFilter">
-<option value="">All Branches</option>
-</select>
-
-<select id="companyFilter">
-<option value="">All Companies</option>
-</select>
-
-
-
-<select id="internFilter">
-<option value="">Internship Type</option>
-</select>
-
-<select id="genderFilter">
-<option value="">All Genders</option>
-</select>
+<input type="text" id="search" placeholder="Search student / roll / company" style="width: 100%; max-width: 100%;">
 
 </div>
 
@@ -572,9 +550,6 @@ const csvURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSwSxs2JtEUGewXFCv
 
 let allData=[];
 
-let internKey="";
-
-
 /* LOAD CSV */
 
 Papa.parse(csvURL,{
@@ -599,17 +574,7 @@ return;
 
 }
 
-let headers = Object.keys(allData[0]);
-
-internKey = headers.find(
-h => h.toLowerCase().includes("paid") || h.toLowerCase().includes("intern")
-) || "";
-
-
-
 buildTable(allData);
-
-populateFilters(allData);
 
 updateStats(allData);
 
@@ -724,124 +689,6 @@ tbody.appendChild(tr);
 
 }
 
-/* POPULATE FILTERS */
-
-function populateFilters(data){
-
-let appliedCompanies=[
-...new Set(data.map(d=>d["Applied Company"]).filter(Boolean))
-];
-
-let branches=[
-...new Set(data.map(d=>d["Branch"]).filter(Boolean))
-];
-
-let companies=[
-...new Set(data.map(d=>d["Company Placed"]).filter(Boolean))
-];
-
-
-let interns=[
-...new Set(
-data.map(d => (d[internKey] || "").trim())
-.filter(v=>v)
-)
-];
-
-let genders=[
-...new Set(
-data.map(d => (d["Gender"] || "").trim())
-.filter(v=>v)
-)
-];
-
-/* SELECTS */
-
-let appliedCompanySelect=document.getElementById("appliedCompanyfilter");
-
-let branchSelect=document.getElementById("branchFilter");
-
-let companySelect=document.getElementById("companyFilter");
-
-
-
-let internSelect=document.getElementById("internFilter");
-
-let genderSelect=document.getElementById("genderFilter");
-
-/* RESET */
-
-appliedCompanySelect.innerHTML='<option value="">Applied Company</option>';
-
-branchSelect.innerHTML='<option value="">All Branches</option>';
-
-companySelect.innerHTML='<option value="">All Companies</option>';
-
-
-
-internSelect.innerHTML='<option value="">Internship Type</option>';
-
-genderSelect.innerHTML='<option value="">All Genders</option>';
-
-/* ADD OPTIONS */
-
-appliedCompanies.sort().forEach(v=>
-appliedCompanySelect.add(new Option(v,v))
-);
-
-branches.sort().forEach(v=>
-branchSelect.add(new Option(v,v))
-);
-
-companies.sort().forEach(v=>
-companySelect.add(new Option(v,v))
-);
-
-
-interns.sort().forEach(v=>
-internSelect.add(new Option(v,v))
-);
-
-genders.sort().forEach(v=>
-genderSelect.add(new Option(v,v))
-);
-
-}
-
-function updateDynamicFilters(filteredData){
-
-let appliedCompanySelect = document.getElementById("AppliedCompanyfilter");
-let companySelect = document.getElementById("companyFilter");
-
-let currentApplied = appliedCompanySelect.value;
-let currentCompany = companySelect.value;
-
-/* UNIQUE APPLIED COMPANIES */
-let appliedCompanies = [
-...new Set(filteredData.map(d => d["Applied Company"]).filter(Boolean))
-];
-
-/* UNIQUE PLACED COMPANIES */
-let companies = [
-...new Set(filteredData.map(d => d["Company Placed"]).filter(Boolean))
-];
-
-/* RESET & RESTORE APPLIED */
-appliedCompanySelect.innerHTML = '<option value="">Applied Company</option>';
-appliedCompanies.sort().forEach(v => appliedCompanySelect.add(new Option(v,v)));
-if(appliedCompanies.includes(currentApplied)){
-appliedCompanySelect.value = currentApplied;
-}
-
-/* RESET & RESTORE PLACED */
-companySelect.innerHTML = '<option value="">All Companies</option>';
-companies.sort().forEach(v => companySelect.add(new Option(v,v)));
-if(companies.includes(currentCompany)){
-companySelect.value = currentCompany;
-}
-
-}
-
 /* UPDATE STATS */
 
 function updateStats(data){
@@ -870,43 +717,16 @@ function applyFilters(){
 let search=document.getElementById("search")
 .value.toLowerCase();
 
-let appliedComp=document.getElementById("AppliedCompanyfilter").value;
-
-let branch=document.getElementById("branchFilter").value;
-
-let company=document.getElementById("companyFilter").value;
-
-let nature=document.getElementById("natureFilter").value;
-
-let intern=document.getElementById("internFilter").value;
-
-let gender=document.getElementById("genderFilter").value;
-
-/* FILTER */
+/* FILTER BY SEARCH */
 
 let filtered=allData.filter(row=>{
 
 let text=JSON.stringify(row).toLowerCase();
 
-return text.includes(search)
-
-&& (appliedComp==="" || row["Applied Company"]===appliedComp)
-
-&& (branch==="" || row["Branch"]===branch)
-
-&& (company==="" || row["Company Placed"]===company)
-
-
-&& (intern==="" ||
-(row[internKey] || "").trim()===intern)
-
-&& (gender==="" ||
-(row["Gender"] || "").trim()===gender);
+return text.includes(search);
 
 });
 
-updateDynamicFilters(filtered);
-  
 buildTable(filtered);
 
 updateStats(filtered);
@@ -917,23 +737,6 @@ updateStats(filtered);
 
 document.getElementById("search")
 .addEventListener("keyup",applyFilters);
-
-document.getElementById("AppliedCompanyfilter")
-.addEventListener("change",applyFilters);
-
-document.getElementById("branchFilter")
-.addEventListener("change",applyFilters);
-
-document.getElementById("companyFilter")
-.addEventListener("change",applyFilters);
-
-
-
-document.getElementById("internFilter")
-.addEventListener("change",applyFilters);
-
-document.getElementById("genderFilter")
-.addEventListener("change",applyFilters);
 
 </script>
 
