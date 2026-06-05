@@ -538,9 +538,7 @@ Total Placed Students :
 <option value="">All Companies</option>
 </select>
 
-<select id="natureFilter">
-<option value="">Nature of the Company</option>
-</select>
+
 
 <select id="internFilter">
 <option value="">Internship Type</option>
@@ -575,7 +573,7 @@ const csvURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSwSxs2JtEUGewXFCv
 let allData=[];
 
 let internKey="";
-let natureKey="";
+
 
 /* LOAD CSV */
 
@@ -607,9 +605,7 @@ internKey = headers.find(
 h => h.toLowerCase().includes("paid") || h.toLowerCase().includes("intern")
 ) || "";
 
-natureKey = headers.find(
-h => h.toLowerCase().includes("nature")
-) || "";
+
 
 buildTable(allData);
 
@@ -744,12 +740,6 @@ let companies=[
 ...new Set(data.map(d=>d["Company Placed"]).filter(Boolean))
 ];
 
-let natures=[
-...new Set(
-data.map(d => (d[natureKey] || "").trim())
-.filter(v=>v)
-)
-];
 
 let interns=[
 ...new Set(
@@ -767,13 +757,13 @@ data.map(d => (d["Gender"] || "").trim())
 
 /* SELECTS */
 
-let appliedCompanySelect=document.getElementById("AppliedCompanyfilter");
+let appliedCompanySelect=document.getElementById("appliedCompanyfilter");
 
 let branchSelect=document.getElementById("branchFilter");
 
 let companySelect=document.getElementById("companyFilter");
 
-let natureSelect=document.getElementById("natureFilter");
+
 
 let internSelect=document.getElementById("internFilter");
 
@@ -787,7 +777,7 @@ branchSelect.innerHTML='<option value="">All Branches</option>';
 
 companySelect.innerHTML='<option value="">All Companies</option>';
 
-natureSelect.innerHTML='<option value="">Nature of the Company</option>';
+
 
 internSelect.innerHTML='<option value="">Internship Type</option>';
 
@@ -807,9 +797,6 @@ companies.sort().forEach(v=>
 companySelect.add(new Option(v,v))
 );
 
-natures.sort().forEach(v=>
-natureSelect.add(new Option(v,v))
-);
 
 interns.sort().forEach(v=>
 internSelect.add(new Option(v,v))
@@ -909,8 +896,6 @@ return text.includes(search)
 
 && (company==="" || row["Company Placed"]===company)
 
-&& (nature==="" ||
-(row[natureKey] || "").trim()===nature)
 
 && (intern==="" ||
 (row[internKey] || "").trim()===intern)
@@ -942,8 +927,7 @@ document.getElementById("branchFilter")
 document.getElementById("companyFilter")
 .addEventListener("change",applyFilters);
 
-document.getElementById("natureFilter")
-.addEventListener("change",applyFilters);
+
 
 document.getElementById("internFilter")
 .addEventListener("change",applyFilters);
