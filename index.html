@@ -524,7 +524,23 @@ Total Placed Students :
 
 <div class="controls">
 
-<input type="text" id="search" placeholder="Search student / roll / company" style="width: 100%; max-width: 100%;">
+<input type="text" id="search" placeholder="Search student / roll / company">
+
+<select id="branchFilter">
+<option value="">All Branches</option>
+</select>
+
+<select id="appliedCompanyFilter">
+<option value="">Applied Company</option>
+</select>
+
+<select id="tpoFilter">
+<option value="">Shortlisted by TPO</option>
+</select>
+
+<select id="companyShortlistFilter">
+<option value="">Shortlisted by Company</option>
+</select>
 
 </div>
 
@@ -575,6 +591,8 @@ return;
 }
 
 buildTable(allData);
+
+populateFilters(allData);
 
 updateStats(allData);
 
@@ -689,6 +707,66 @@ tbody.appendChild(tr);
 
 }
 
+/* POPULATE FILTERS */
+
+function populateFilters(data){
+
+let branches=[
+...new Set(data.map(d=>d["Branch"]).filter(Boolean))
+];
+
+let appliedCompanies=[
+...new Set(data.map(d=>d["Applied Company"]).filter(Boolean))
+];
+
+let tpoList=[
+...new Set(data.map(d=>d["Shortlisted by TPO"]).filter(Boolean))
+];
+
+let companyShortlist=[
+...new Set(data.map(d=>d["Shortlisted by Company"]).filter(Boolean))
+];
+
+/* SELECTS */
+
+let branchSelect=document.getElementById("branchFilter");
+
+let appliedCompanySelect=document.getElementById("appliedCompanyFilter");
+
+let tpoSelect=document.getElementById("tpoFilter");
+
+let companyShortlistSelect=document.getElementById("companyShortlistFilter");
+
+/* RESET */
+
+branchSelect.innerHTML='<option value="">All Branches</option>';
+
+appliedCompanySelect.innerHTML='<option value="">Applied Company</option>';
+
+tpoSelect.innerHTML='<option value="">Shortlisted by TPO</option>';
+
+companyShortlistSelect.innerHTML='<option value="">Shortlisted by Company</option>';
+
+/* ADD OPTIONS */
+
+branches.sort().forEach(v=>
+branchSelect.add(new Option(v,v))
+);
+
+appliedCompanies.sort().forEach(v=>
+appliedCompanySelect.add(new Option(v,v))
+);
+
+tpoList.sort().forEach(v=>
+tpoSelect.add(new Option(v,v))
+);
+
+companyShortlist.sort().forEach(v=>
+companyShortlistSelect.add(new Option(v,v))
+);
+
+}
+
 /* UPDATE STATS */
 
 function updateStats(data){
@@ -717,13 +795,29 @@ function applyFilters(){
 let search=document.getElementById("search")
 .value.toLowerCase();
 
-/* FILTER BY SEARCH */
+let branch=document.getElementById("branchFilter").value;
+
+let appliedComp=document.getElementById("appliedCompanyFilter").value;
+
+let tpo=document.getElementById("tpoFilter").value;
+
+let companyShort=document.getElementById("companyShortlistFilter").value;
+
+/* FILTER */
 
 let filtered=allData.filter(row=>{
 
 let text=JSON.stringify(row).toLowerCase();
 
-return text.includes(search);
+return text.includes(search)
+
+&& (branch==="" || row["Branch"]===branch)
+
+&& (appliedComp==="" || row["Applied Company"]===appliedComp)
+
+&& (tpo==="" || row["Shortlisted by TPO"]===tpo)
+
+&& (companyShort==="" || row["Shortlisted by Company"]===companyShort);
 
 });
 
@@ -737,6 +831,18 @@ updateStats(filtered);
 
 document.getElementById("search")
 .addEventListener("keyup",applyFilters);
+
+document.getElementById("branchFilter")
+.addEventListener("change",applyFilters);
+
+document.getElementById("appliedCompanyFilter")
+.addEventListener("change",applyFilters);
+
+document.getElementById("tpoFilter")
+.addEventListener("change",applyFilters);
+
+document.getElementById("companyShortlistFilter")
+.addEventListener("change",applyFilters);
 
 </script>
 
