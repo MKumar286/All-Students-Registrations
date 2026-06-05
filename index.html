@@ -118,7 +118,7 @@ letter-spacing:1px;
 h3{
 
 font-size:18px;
-margin-top:2px
+margin-top:2px;
 font-weight:500;
 
 background:linear-gradient(90deg,#b2ff59,#00e5ff);
@@ -339,7 +339,7 @@ text-align:center;
 background:linear-gradient(135deg,#141e30,#243b55);
 
 color:#ffffff;
-line-height:1.3
+line-height:1.3;
 border:1px solid rgba(255,255,255,0.12);
 
 white-space:nowrap;
@@ -405,7 +405,7 @@ text-decoration:none;
 font-size:10px;
 
 font-weight:bold;
-  
+
 line-height:1.2;
 
 display:inline-block;
@@ -465,7 +465,7 @@ width:145px;
 min-width:145px;
 
 height:28px;
-padding:3px 6px
+padding:3px 6px;
 font-size:12px;
 
 }
@@ -575,6 +575,7 @@ const csvURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSwSxs2JtEUGewXFCv
 let allData=[];
 
 let internKey="";
+let natureKey="";
 
 /* LOAD CSV */
 
@@ -603,8 +604,12 @@ return;
 let headers = Object.keys(allData[0]);
 
 internKey = headers.find(
-h => h.toLowerCase().includes("paid")
-);
+h => h.toLowerCase().includes("paid") || h.toLowerCase().includes("intern")
+) || "";
+
+natureKey = headers.find(
+h => h.toLowerCase().includes("nature")
+) || "";
 
 buildTable(allData);
 
@@ -727,7 +732,7 @@ tbody.appendChild(tr);
 
 function populateFilters(data){
 
-let batches=[
+let appliedCompanies=[
 ...new Set(data.map(d=>d["Applied Company"]).filter(Boolean))
 ];
 
@@ -762,7 +767,7 @@ data.map(d => (d["Gender"] || "").trim())
 
 /* SELECTS */
 
-let batchSelect=document.getElementById("Applied Company");
+let appliedCompanySelect=document.getElementById("AppliedCompanyfilter");
 
 let branchSelect=document.getElementById("branchFilter");
 
@@ -776,7 +781,7 @@ let genderSelect=document.getElementById("genderFilter");
 
 /* RESET */
 
-batchSelect.innerHTML='<option value="">Company Applied</option>';
+appliedCompanySelect.innerHTML='<option value="">Applied Company</option>';
 
 branchSelect.innerHTML='<option value="">All Branches</option>';
 
@@ -790,8 +795,8 @@ genderSelect.innerHTML='<option value="">All Genders</option>';
 
 /* ADD OPTIONS */
 
-batches.sort().forEach(v=>
-batchSelect.add(new Option(v,v))
+appliedCompanies.sort().forEach(v=>
+appliedCompanySelect.add(new Option(v,v))
 );
 
 branches.sort().forEach(v=>
@@ -830,7 +835,7 @@ let currentValue = companySelect.value;
 let companies = [
 ...new Set(
 filteredData
-.map(d => d["Applied Company"])
+.map(d => d["Company Placed"])
 .filter(Boolean)
 )
 ];
@@ -866,7 +871,9 @@ let uniqueStudents=new Set();
 
 data.forEach(row=>{
 
+if(row["Roll Number"]) {
 uniqueStudents.add(row["Roll Number"]);
+}
 
 });
 
@@ -882,7 +889,7 @@ function applyFilters(){
 let search=document.getElementById("search")
 .value.toLowerCase();
 
-let batch=document.getElementById("batchFilter").value;
+let appliedComp=document.getElementById("AppliedCompanyfilter").value;
 
 let branch=document.getElementById("branchFilter").value;
 
@@ -902,7 +909,7 @@ let text=JSON.stringify(row).toLowerCase();
 
 return text.includes(search)
 
-&& (batch==="" || row["Applied Company"]===batch)
+&& (appliedComp==="" || row["Applied Company"]===appliedComp)
 
 && (branch==="" || row["Branch"]===branch)
 
@@ -932,7 +939,7 @@ updateStats(filtered);
 document.getElementById("search")
 .addEventListener("keyup",applyFilters);
 
-document.getElementById("batchFilter")
+document.getElementById("AppliedCompanyfilter")
 .addEventListener("change",applyFilters);
 
 document.getElementById("branchFilter")
