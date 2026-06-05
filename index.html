@@ -3,71 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Students Registrations Dashboard</title>
+    <title>Premium Placement & Registrations Hub</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
-<body class="bg-gray-50 font-sans text-gray-800 antialiased">
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen selection:bg-indigo-500 selection:text-white antialiased bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950 via-slate-950 to-black">
 
-    <div class="max-w-7xl mx-auto p-6">
-        <header class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-indigo-600">All Students Registrations Dashboard</h1>
-            <p class="text-gray-500 mt-2">Streaming live from Google Sheets. Changes sync automatically on refresh.</p>
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[350px] bg-gradient-to-r from-violet-600/10 via-indigo-500/15 to-purple-600/10 blur-3xl pointer-events-none rounded-full"></div>
+
+    <div class="relative max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <header class="mb-10 text-center md:text-left md:flex md:items-center md:justify-between border-b border-slate-800 pb-6">
+            <div>
+                <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+                    Students Registrations & Analytics Portal
+                </h1>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base font-medium">
+                    Live telemetry link synced seamlessly with your Master Google Sheet records.
+                </p>
+            </div>
             
-            <div id="loadingStatus" class="mt-4 inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm shadow rounded-md text-indigo-600 bg-white border border-indigo-100">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <div id="loadingStatus" class="mt-4 md:mt-0 inline-flex items-center px-4 py-2.5 font-semibold text-sm rounded-xl text-indigo-400 bg-slate-900/80 backdrop-blur-md border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.15)]">
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Connecting to Google Sheet & processing data...
+                Streaming Live Engine Data...
             </div>
         </header>
 
-        <div id="filterContainer" class="hidden bg-white p-6 rounded-xl shadow border border-gray-200 mb-8">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold text-gray-700">Cascading Filters</h2>
-                <button id="resetFilters" class="px-4 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-md transition cursor-pointer">Clear All Filters</button>
+        <div id="statsContainer" class="hidden grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-gradient-to-br from-slate-900/90 to-slate-950/90 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl shadow-xl">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Filtered Pool</p>
+                <p id="statFiltered" class="text-2xl sm:text-3xl font-black text-indigo-400">0</p>
             </div>
-            <div id="filtersGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div class="bg-gradient-to-br from-slate-900/90 to-slate-950/90 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl shadow-xl">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Dataset Size</p>
+                <p id="statTotal" class="text-2xl sm:text-3xl font-black text-slate-300">0</p>
+            </div>
+            <div class="bg-gradient-to-br from-slate-900/90 to-slate-950/90 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl shadow-xl">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Active Branches</p>
+                <p id="statBranches" class="text-2xl sm:text-3xl font-black text-purple-400">0</p>
+            </div>
+            <div class="bg-gradient-to-br from-slate-900/90 to-slate-950/90 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl shadow-xl">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Target Companies</p>
+                <p id="statCompanies" class="text-2xl sm:text-3xl font-black text-pink-400">0</p>
+            </div>
+        </div>
+
+        <div id="filterContainer" class="hidden bg-slate-900/60 backdrop-blur-2xl p-6 rounded-2xl border border-slate-800/80 shadow-2xl mb-8 relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/5 rounded-full blur-2xl"></div>
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-pulse"></div>
+                    <h2 class="text-lg font-bold text-slate-200 tracking-wide">Multi-Dimensional Filtering Grid</h2>
+                </div>
+                <button id="resetFilters" class="px-5 py-2 bg-gradient-to-r from-rose-500/10 to-red-500/10 hover:from-rose-500/20 hover:to-red-500/20 border border-rose-500/30 hover:border-rose-500/50 text-rose-300 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-300 cursor-pointer shadow-lg">
+                    Clear Active Filters
+                </button>
+            </div>
+            <div id="filtersGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
                 </div>
         </div>
 
-        <div id="tableContainer" class="hidden bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
-            <div class="p-4 bg-gray-100 border-b border-gray-200 flex justify-between items-center">
-                <span id="recordCount" class="text-sm font-medium text-gray-600">Showing 0 rows</span>
-            </div>
-            <div class="overflow-x-auto max-h-[600px]">
+        <div id="tableContainer" class="hidden bg-slate-950/80 backdrop-blur-2xl rounded-2xl border border-slate-800/80 shadow-2xl overflow-hidden">
+            <div class="overflow-x-auto max-h-[650px] custom-scrollbar">
                 <table class="w-full text-left border-collapse">
-                    <thead id="tableHeader" class="bg-gray-50 sticky top-0 border-b border-gray-200 shadow-sm z-10">
+                    <thead id="tableHeader" class="sticky top-0 bg-slate-900 border-b border-slate-800/80 z-20 shadow-md">
                         </thead>
-                    <tbody id="tableBody" class="divide-y divide-gray-200 text-sm">
+                    <tbody id="tableBody" class="divide-y divide-slate-900/60 text-sm">
                         </tbody>
                 </table>
             </div>
         </div>
     </div>
 
+    <style>
+        /* Precision subtle adjustments for internal tables overflow visuals */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #020617; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #334155; }
+    </style>
+
     <script>
-        // Your live Google Sheets CSV link
+        // Target Live API Address
         const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwSxs2JtEUGewXFCvir7vQJMjsIdS-ODqzBeAQTi_4Wmp73pDTPh27f7qTedZpu_CTmMiBLMLf5lzm/pub?gid=837128863&single=true&output=csv";
 
         let rawData = [];      
-        let originalColumns = []; // Raw columns containing hidden \n or spacing
+        let originalColumns = []; 
         let activeFilters = {}; 
 
         document.getElementById('resetFilters').addEventListener('click', resetAllFilters);
 
-        // Fetch Google Sheet data automatically on page load
+        // Async core pull sequence
         async function fetchLiveSheetData() {
             try {
                 const response = await fetch(SHEET_CSV_URL);
-                if (!response.ok) throw new Error('Network response was not ok');
+                if (!response.ok) throw new Error('Network payload communication down.');
                 
-                // Read as arrayBuffer to perfectly handle multi-line string payloads
                 const buffer = await response.arrayBuffer();
                 const data = new Uint8Array(buffer);
                 
-                // Parse workbook
                 const workbook = XLSX.read(data, { type: 'array', codepage: 65001 });
                 const firstSheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[firstSheetName];
@@ -77,34 +114,33 @@
                 if (rawData.length > 0) {
                     originalColumns = Object.keys(rawData[0]);
                     
-                    // Reveal the panels
-                    document.getElementById('loadingStatus').classList.add('hidden');
+                    // Display interface panels
+                    document.getElementById('loadingStatus').innerHTML = `<div class="w-2 h-2 bg-emerald-500 rounded-full animate-ping mr-2"></div><span class="text-emerald-400">Connected</span>`;
+                    document.getElementById('statsContainer').classList.remove('hidden');
                     document.getElementById('filterContainer').classList.remove('hidden');
                     document.getElementById('tableContainer').classList.remove('hidden');
                     
                     buildFilters();
                     updateDashboard();
                 } else {
-                    document.getElementById('loadingStatus').innerHTML = `<span class="text-amber-600 font-semibold">The spreadsheet was read successfully but contains no data inside it.</span>`;
+                    document.getElementById('loadingStatus').innerHTML = `<span class="text-amber-400">Operational Empty Sheet</span>`;
                 }
             } catch (error) {
-                console.error("Failed to fetch data:", error);
-                document.getElementById('loadingStatus').innerHTML = `<span class="text-red-500 font-semibold">Error loading Google Sheet. Please double-check internet access or link permissions.</span>`;
+                console.error(error);
+                document.getElementById('loadingStatus').innerHTML = `<span class="text-rose-500">Matrix Sync Error</span>`;
             }
         }
 
-        // Clean up visual header presentation (Removes raw newlines like 'Applied\n Company')
         function cleanHeaderName(header) {
             return header.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
         }
 
-        // Build dynamic filter dropdowns based on your live sheet headers
+        // Build elegant select matrices
         function buildFilters() {
             const grid = document.getElementById('filtersGrid');
             grid.innerHTML = ''; 
 
             originalColumns.forEach(col => {
-                // Ignore the serial number column from acting as a filter block
                 if (cleanHeaderName(col).toLowerCase() === 's.no') return;
 
                 const wrapper = document.createElement('div');
@@ -112,15 +148,14 @@
                 const cleanLabel = cleanHeaderName(col);
                 
                 wrapper.innerHTML = `
-                    <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 truncate" title="${cleanLabel}">${cleanLabel}</label>
-                    <select data-column="${col}" class="filter-select w-full p-2 border border-gray-300 rounded-md bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm transition cursor-pointer">
-                        <option value="">All</option>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 truncate" title="${cleanLabel}">${cleanLabel}</label>
+                    <select data-column="${col}" class="filter-select w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 focus:text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none text-xs font-medium tracking-wide transition-all duration-200 cursor-pointer shadow-inner">
+                        <option value="" class="bg-slate-950 text-slate-400">ALL</option>
                     </select>
                 `;
                 grid.appendChild(wrapper);
             });
 
-            // Listen for changes across generated inputs
             document.querySelectorAll('.filter-select').forEach(select => {
                 select.addEventListener('change', function() {
                     const col = this.getAttribute('data-column');
@@ -134,9 +169,8 @@
             });
         }
 
-        // Handle cascading logic: if Filter A changes, adjust available values in filter B, C, D...
+        // Cascade metrics calculation and validation updates
         function updateDashboard() {
-            // Apply filtering criteria over the records
             const filteredData = rawData.filter(row => {
                 for (let col in activeFilters) {
                     if (String(row[col]).trim() !== activeFilters[col]) {
@@ -146,7 +180,17 @@
                 return true;
             });
 
-            // Recompute available drop-down selections based on the constraints of companion inputs
+            // Update Statistics Modules
+            document.getElementById('statFiltered').textContent = filteredData.length.toLocaleString();
+            document.getElementById('statTotal').textContent = rawData.length.toLocaleString();
+            
+            // Extract distinct target metadata indicators safely
+            const uniqueBranches = [...new Set(rawData.map(r => r['Branch'] || r['BRANCH']))].filter(Boolean).length;
+            const uniqueCompanies = [...new Set(rawData.map(r => r['Applied\n Company '] || r['Applied Company']))].filter(Boolean).length;
+            document.getElementById('statBranches').textContent = uniqueBranches || '-';
+            document.getElementById('statCompanies').textContent = uniqueCompanies || '-';
+
+            // Recalculate options array spaces
             document.querySelectorAll('.filter-select').forEach(select => {
                 const col = select.getAttribute('data-column');
                 const currentValue = select.value;
@@ -161,16 +205,16 @@
                     return true;
                 });
 
-                // Generate unique array options
                 const uniqueValues = [...new Set(dataFilteredByOthers.map(row => String(row[col]).trim()))]
                                       .filter(val => val !== "")
                                       .sort();
 
-                select.innerHTML = '<option value="">All</option>';
+                select.innerHTML = '<option value="" class="text-slate-400">ALL</option>';
                 uniqueValues.forEach(val => {
                     const option = document.createElement('option');
                     option.value = val;
                     option.textContent = val;
+                    option.className = "bg-slate-950 text-slate-200";
                     if (val === currentValue) option.selected = true;
                     select.appendChild(option);
                 });
@@ -179,28 +223,36 @@
             renderTable(filteredData);
         }
 
-        // Render clean structural table rows
+        // Render Clean Display Grid
         function renderTable(data) {
             const headerRow = document.getElementById('tableHeader');
             const tableBody = document.getElementById('tableBody');
-            document.getElementById('recordCount').textContent = `Showing ${data.length} of ${rawData.length} entries`;
 
-            // Draw clean table headers
+            // Draw Clean Sticky Rows Headers
             headerRow.innerHTML = '<tr>' + originalColumns.map(col => `
-                <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 bg-gray-50 whitespace-nowrap">${cleanHeaderName(col)}</th>
+                <th class="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap border-b border-slate-800">${cleanHeaderName(col)}</th>
             `).join('') + '</tr>';
 
-            // Draw data empty rows fallback
             if (data.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="${originalColumns.length}" class="px-6 py-10 text-center text-gray-400">No matching student data matches these filters.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="${originalColumns.length}" class="px-6 py-16 text-center text-slate-500 font-medium tracking-wide">No students correspond with your active filter choices.</td></tr>`;
                 return;
             }
 
-            // Draw student listing entries
+            // Draw data rows
             tableBody.innerHTML = data.map(row => {
-                return `<tr class="hover:bg-gray-50/70 transition">` + originalColumns.map(col => `
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-600 border-b border-gray-100">${row[col] ?? ""}</td>
-                `).join('') + `</tr>`;
+                return `<tr class="hover:bg-indigo-500/5 border-b border-slate-900/60 transition-colors duration-150 group">` + originalColumns.map(col => {
+                    const value = row[col] ?? "";
+                    
+                    // Highlighting accents based on specific cell states
+                    let cellHighlightClass = "text-slate-300";
+                    if (value.toString().toLowerCase() === "cleared" || value.toString().toLowerCase() === "shortlisted" || value.toString().toLowerCase() === "placed") {
+                        cellHighlightClass = "text-emerald-400 font-semibold";
+                    } else if (value.toString().toLowerCase() === "rejected" || value.toString().toLowerCase() === "not cleared") {
+                        cellHighlightClass = "text-rose-400";
+                    }
+
+                    return `<td class="px-6 py-4 whitespace-nowrap border-b border-slate-900/40 font-medium tracking-wide ${cellHighlightClass}">${value}</td>`;
+                }).join('') + `</tr>`;
             }).join('');
         }
 
@@ -210,7 +262,7 @@
             updateDashboard();
         }
 
-        // Trigger process engine
+        // Engage App
         fetchLiveSheetData();
     </script>
 </body>
