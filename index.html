@@ -566,6 +566,13 @@ const csvURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSwSxs2JtEUGewXFCv
 
 let allData=[];
 
+// Key mappings to safely detect sheet columns regardless of spacing/capitalization
+let branchKey = "";
+let appliedCompanyKey = "";
+let tpoKey = "";
+let companyShortlistKey = "";
+let rollKey = "";
+
 /* LOAD CSV */
 
 Papa.parse(csvURL,{
@@ -589,6 +596,14 @@ alert("No Data Found");
 return;
 
 }
+
+// Dynamically identify columns to prevent space-mismatch bugs
+let headers = Object.keys(allData[0]);
+branchKey = headers.find(h => h.toLowerCase().trim().includes("branch")) || "Branch";
+appliedCompanyKey = headers.find(h => h.toLowerCase().trim().replace(/\s+/g, '').includes("appliedcompany")) || "Applied Company";
+tpoKey = headers.find(h => h.toLowerCase().trim().includes("tpo")) || "Shortlisted by TPO";
+companyShortlistKey = headers.find(h => h.toLowerCase().trim().includes("shortlisted by company")) || "Shortlisted by Company";
+rollKey = headers.find(h => h.toLowerCase().trim().includes("roll")) || "Roll Number";
 
 buildTable(allData);
 
@@ -712,19 +727,19 @@ tbody.appendChild(tr);
 function populateFilters(data){
 
 let branches=[
-...new Set(data.map(d=>d["Branch"]).filter(Boolean))
+...new Set(data.map(d=>(d[branchKey] || "").trim()).filter(Boolean))
 ];
 
 let appliedCompanies=[
-...new Set(data.map(d=>d["Applied Company"]).filter(Boolean))
+...new Set(data.map(d=>(d[appliedCompanyKey] || "").trim()).filter(Boolean))
 ];
 
 let tpoList=[
-...new Set(data.map(d=>d["Shortlisted by TPO"]).filter(Boolean))
+...new Set(data.map(d=>(d[tpoKey] || "").trim()).filter(Boolean))
 ];
 
 let companyShortlist=[
-...new Set(data.map(d=>d["Shortlisted by Company"]).filter(Boolean))
+...new Set(data.map(d=>(d[companyShortlistKey] || "").trim()).filter(Boolean))
 ];
 
 /* SELECTS */
@@ -777,8 +792,8 @@ let uniqueStudents=new Set();
 
 data.forEach(row=>{
 
-if(row["Roll Number"]) {
-uniqueStudents.add(row["Roll Number"]);
+if(row[rollKey]) {
+uniqueStudents.add(row[rollKey].toString().trim());
 }
 
 });
@@ -809,15 +824,20 @@ let filtered=allData.filter(row=>{
 
 let text=JSON.stringify(row).toLowerCase();
 
+let rowBranch = (row[branchKey] || "").toString().trim();
+let rowAppliedComp = (row[appliedCompanyKey] || "").toString().trim();
+let rowTpo = (row[tpoKey] || "").toString().trim();
+let rowCompanyShort = (row[companyShortlistKey] || "").toString().trim();
+
 return text.includes(search)
 
-&& (branch==="" || row["Branch"]===branch)
+&& (branch==="" || rowBranch===branch)
 
-&& (appliedComp==="" || row["Applied Company"]===appliedComp)
+&& (appliedComp==="" || rowAppliedComp===appliedComp)
 
-&& (tpo==="" || row["Shortlisted by TPO"]===tpo)
+&& (tpo==="" || rowTpo===tpo)
 
-&& (companyShort==="" || row["Shortlisted by Company"]===companyShort);
+&& (companyShort==="" || rowCompanyShort===companyShort);
 
 });
 
