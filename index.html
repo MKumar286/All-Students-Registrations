@@ -128,38 +128,59 @@ background:linear-gradient(90deg,#b2ff59,#00e5ff);
 
 }
 
-/* STATS */
-
-.stats{
-
-margin:0;
-
-font-weight:bold;
-
-font-size:18px;
-
-display:flex;
-
-justify-content:center;
-
-gap:25px;
-
-flex-wrap:wrap;
-
-padding:8px 12px;
-
+/* STATS CONTAINER & CARDS */
+.stats-container {
+display: flex;
+flex-direction: column;
 background: linear-gradient(135deg, #064420, #0b6b35);
+padding: 6px 8px;
+border-left: 1px solid rgba(255,255,255,0.15);
+border-right: 1px solid rgba(255,255,255,0.15);
+gap: 6px;
+}
 
-border-radius:0;
+.stats-row {
+display: flex;
+flex-wrap: nowrap;
+gap: 6px;
+overflow-x: auto;
+overflow-y: hidden;
+scroll-behavior: smooth;
+width: 100%;
+}
 
-box-shadow:none;
+.stats-card {
+flex: 0 0 auto;
+width: 170px;
+min-width: 170px;
+background: rgba(255, 255, 255, 0.1);
+border: 1px solid rgba(255, 255, 255, 0.2);
+border-radius: 8px;
+padding: 4px 8px;
+font-size: 11px;
+line-height: 1.2;
+color: white;
+display: flex;
+flex-direction: column;
+justify-content: center;
+}
 
-border-left:1px solid rgba(255,255,255,0.15);
+.stats-card span {
+font-weight: bold;
+font-size: 14px;
+color: #b2ff59;
+margin-top: 1px;
+}
 
-border-right:1px solid rgba(255,255,255,0.15);
-
-color:white;
-
+.stats-row::-webkit-scrollbar {
+height: 5px;
+}
+.stats-row::-webkit-scrollbar-track {
+background: rgba(255,255,255,0.05);
+}
+.stats-row::-webkit-scrollbar-thumb {
+background: rgba(255,255,255,0.2);
+border-radius: 4px;
 }
 
 /* FILTER CONTAINER */
@@ -443,14 +464,20 @@ h3{
 font-size:15px;
 }
 
-.stats{
+.stats-container{
+padding: 5px;
+gap: 5px;
+}
 
-font-size:13px;
+.stats-card{
+width: 145px;
+min-width: 145px;
+font-size: 10px;
+padding: 3px 6px;
+}
 
-gap:12px;
-
-padding:6px;
-
+.stats-card span {
+font-size: 12px;
 }
 
 .filter-container{
@@ -502,24 +529,32 @@ min-width:1400px;
 
 <div class="header-box">
 
-<h1>Student Enrollment & Selection Journey</h1>
+<h1>MGIT Placement Records</h1>
 
-<h3>Academic Year 2026 - 2027</h3>
+<h3>Academic Year 2025 - 2026</h3>
 
 </div>
 
-<div class="stats">
-
-<div>
-Total Offers :
-<span id="totalOffers">0</span>
-</div>
-
-<div>
-Total Placed Students :
-<span id="placedStudents">0</span>
-</div>
-
+<div class="stats-container">
+    <div class="stats-row">
+        <div class="stats-card">Total Registrations <span id="statRegistrations">0</span></div>
+        <div class="stats-card">Companies Registered <span id="statCompanies">0</span></div>
+        <div class="stats-card">Shortlisted by TPO <span id="statTpo">0</span></div>
+        <div class="stats-card">Shortlisted by Company <span id="statCompanyShort">0</span></div>
+        <div class="stats-card">Paper Test-1 Cleared <span id="statPaper1">0</span></div>
+        <div class="stats-card">Paper Test-2 Cleared <span id="statPaper2">0</span></div>
+        <div class="stats-card">GD Cleared <span id="statGd">0</span></div>
+        <div class="stats-card">OA-1 Cleared <span id="statOa1">0</span></div>
+    </div>
+    <div class="stats-row">
+        <div class="stats-card">OA-2 Cleared <span id="statOa2">0</span></div>
+        <div class="stats-card">OA-3 Cleared <span id="statOa3">0</span></div>
+        <div class="stats-card">Tech Round-1 Cleared <span id="statTech1">0</span></div>
+        <div class="stats-card">Tech Round-2 Cleared <span id="statTech2">0</span></div>
+        <div class="stats-card">HR Interview Cleared <span id="statHr">0</span></div>
+        <div class="stats-card">Managerial Round Cleared <span id="statManagerial">0</span></div>
+        <div class="stats-card">Students Selected <span id="statSelected">0</span></div>
+    </div>
 </div>
 
 <div class="filter-container">
@@ -628,6 +663,7 @@ let tech1Key = "";
 let tech2Key = "";
 let hrKey = "";
 let managerialKey = "";
+let finalStatusKey = "";
 
 /* LOAD CSV */
 
@@ -681,6 +717,7 @@ tech1Key = headers.find(h => h.toLowerCase().trim().includes("technical intervie
 tech2Key = headers.find(h => h.toLowerCase().trim().includes("technical interview round-2") || (h.toLowerCase().includes("technical") && h.toLowerCase().includes("round-2"))) || "Technical Interview Round-2 Cleared?";
 hrKey = headers.find(h => h.toLowerCase().trim().includes("hr interview")) || "HR Interview Cleared";
 managerialKey = headers.find(h => h.toLowerCase().trim().includes("managerial round")) || "Managerial Round Cleared?";
+finalStatusKey = headers.find(h => h.toLowerCase().trim().includes("final status")) || "Final Status";
 
 buildTable(allData);
 
@@ -876,25 +913,50 @@ managerialOptions.sort().forEach(v=> managerialSelect.add(new Option(v,v)));
 
 }
 
-/* UPDATE STATS */
-
+/* UPDATE STATS DASHBOARD */
 function updateStats(data){
+    // 1. Total Registrations
+    document.getElementById("statRegistrations").innerText = data.length;
+    
+    // 2. Unique Registered Companies
+    let uniqueComps = new Set();
+    // 3 - 15 Counters
+    let tpoCount = 0, compShortCount = 0, paper1Count = 0, paper2Count = 0;
+    let gdCount = 0, oa1Count = 0, oa2Count = 0, oa3Count = 0;
+    let tech1Count = 0, tech2Count = 0, hrCount = 0, managerialCount = 0, selectedCount = 0;
 
-document.getElementById("totalOffers").innerText=data.length;
+    data.forEach(row => {
+        if (row[appliedCompanyKey]) uniqueComps.add(row[appliedCompanyKey].toString().trim());
+        
+        if ((row[tpoKey] || "").toString().toLowerCase().trim() === "yes") tpoCount++;
+        if ((row[companyShortlistKey] || "").toString().toLowerCase().trim() === "yes") compShortCount++;
+        if (paperTest1Key && (row[paperTest1Key] || "").toString().toLowerCase().trim() === "yes") paper1Count++;
+        if (paperTest2Key && (row[paperTest2Key] || "").toString().toLowerCase().trim() === "yes") paper2Count++;
+        if ((row[gdKey] || "").toString().toLowerCase().trim() === "yes") gdCount++;
+        if ((row[oa1Key] || "").toString().toLowerCase().trim() === "yes") oa1Count++;
+        if ((row[oa2Key] || "").toString().toLowerCase().trim() === "yes") oa2Count++;
+        if ((row[oa3Key] || "").toString().toLowerCase().trim() === "yes") oa3Count++;
+        if ((row[tech1Key] || "").toString().toLowerCase().trim() === "yes") tech1Count++;
+        if ((row[tech2Key] || "").toString().toLowerCase().trim() === "yes") tech2Count++;
+        if ((row[hrKey] || "").toString().toLowerCase().trim() === "yes") hrCount++;
+        if ((row[managerialKey] || "").toString().toLowerCase().trim() === "yes") managerialCount++;
+        if (finalStatusKey && (row[finalStatusKey] || "").toString().toLowerCase().trim().includes("selected")) selectedCount++;
+    });
 
-let uniqueStudents=new Set();
-
-data.forEach(row=>{
-
-if(row[rollKey]) {
-uniqueStudents.add(row[rollKey].toString().trim());
-}
-
-});
-
-document.getElementById("placedStudents").innerText=
-uniqueStudents.size;
-
+    document.getElementById("statCompanies").innerText = uniqueComps.size;
+    document.getElementById("statTpo").innerText = tpoCount;
+    document.getElementById("statCompanyShort").innerText = compShortCount;
+    document.getElementById("statPaper1").innerText = paper1Count;
+    document.getElementById("statPaper2").innerText = paper2Count;
+    document.getElementById("statGd").innerText = gdCount;
+    document.getElementById("statOa1").innerText = oa1Count;
+    document.getElementById("statOa2").innerText = oa2Count;
+    document.getElementById("statOa3").innerText = oa3Count;
+    document.getElementById("statTech1").innerText = tech1Count;
+    document.getElementById("statTech2").innerText = tech2Count;
+    document.getElementById("statHr").innerText = hrCount;
+    document.getElementById("statManagerial").innerText = managerialCount;
+    document.getElementById("statSelected").innerText = selectedCount;
 }
 
 /* APPLY FILTERS */
