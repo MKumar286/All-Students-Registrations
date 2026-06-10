@@ -296,7 +296,6 @@ transform:scale(1.06);
 background:linear-gradient(135deg,#43cea2,#185a9d);
 }
 
-/* Updated styling: vibrant orange to light orange linear gradient theme layout context */
 .excel-btn {
 background: linear-gradient(135deg, #e65c00, #f9d423);
 color: #ffffff;
@@ -408,4 +407,130 @@ table{ min-width:1400px; }
     <table id="placementTable">
         <thead></thead>
         <tbody id="tableBodyContent">
-            <tr><td colspan="30" style="padding: 20px; color: #555;">Loading Placement Journey
+            <tr><td colspan="30" style="padding: 24px; color: #333; font-weight: bold; background: #fff;">⏳ Connecting to live data board stream...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<script>
+// Replace this URL string if your Google Sheet settings change!
+const csvURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRiETxVy0sYxBeApgtsDzUGSTzlrH5IjVjYh83cqlq0XLsAeOK9w7KYRzBVc8V9ah4jEPRzdZkEq9i5/pub?gid=1926306429&single=true&output=csv";
+
+let allData=[];
+let currentFilteredData=[]; 
+
+let branchKey = "", appliedCompanyKey = "", roleKey = "", tpoKey = "", companyShortlistKey = "";
+let paperTest1Key = "", paperTest2Key = "", rollKey = "", gdKey = "", oa1Key = "", oa2Key = "", oa3Key = "";
+let tech1Key = "", tech2Key = "", hrKey = "", managerialKey = "", finalStatusKey = "";
+
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initParsing, 300);
+});
+
+function initParsing() {
+    if (typeof Papa === 'undefined') {
+        document.getElementById("tableBodyContent").innerHTML = "<tr><td colspan='30' style='padding:20px; background:#fff; color:orange;'>Engine components initializing, refreshing layout...</td></tr>";
+        setTimeout(initParsing, 600);
+        return;
+    }
+
+    Papa.parse(csvURL,{
+        download:true,
+        header:true,
+        skipEmptyLines:true,
+        complete:function(results){
+            allData = results.data.filter(row => Object.values(row).join("").trim() !== "");
+            if(allData.length===0){
+                document.getElementById("tableBodyContent").innerHTML = "<tr><td colspan='30' style='padding:25px; background:#fff; color:#d32f2f;'>⚠️ The Sheet parsed successfully but contains no data rows.</td></tr>";
+                return;
+            }
+
+            let headers = Object.keys(allData[0]);
+
+            branchKey = headers.find(h => h.toLowerCase().trim().includes("branch")) || "";
+            appliedCompanyKey = headers.find(h => h.toLowerCase().trim().includes("company name")) || headers.find(h => h.toLowerCase().trim().includes("company")) || "";
+            roleKey = headers.find(h => h.toLowerCase().trim().includes("profile") || h.toLowerCase().trim().includes("role")) || "";
+            tpoKey = headers.find(h => h.toLowerCase().trim().includes("tpo")) || "";
+            companyShortlistKey = headers.find(h => h.toLowerCase().trim().includes("shortlist")) || "";
+            rollKey = headers.find(h => h.toLowerCase().trim().includes("roll") || h.toLowerCase().trim().includes("htno")) || "";
+            paperTest1Key = headers.find(h => h.toLowerCase().trim().includes("pen") && h.toLowerCase().trim().includes("1")) || "";
+            paperTest2Key = headers.find(h => h.toLowerCase().trim().includes("pen") && h.toLowerCase().trim().includes("2")) || "";
+            gdKey = headers.find(h => h.toLowerCase().trim().includes("gd") || h.toLowerCase().trim().includes("group discussion")) || "";
+            oa1Key = headers.find(h => h.toLowerCase().trim().includes("oa") && h.toLowerCase().trim().includes("1")) || "";
+            oa2Key = headers.find(h => h.toLowerCase().trim().includes("oa") && h.toLowerCase().trim().includes("2")) || "";
+            oa3Key = headers.find(h => h.toLowerCase().trim().includes("oa") && h.toLowerCase().trim().includes("3")) || "";
+            tech1Key = headers.find(h => h.toLowerCase().trim().includes("tech") && h.toLowerCase().trim().includes("1")) || "";
+            tech2Key = headers.find(h => h.toLowerCase().trim().includes("tech") && h.toLowerCase().trim().includes("2")) || "";
+            hrKey = headers.find(h => h.toLowerCase().trim().includes("hr")) || "";
+            managerialKey = headers.find(h => h.toLowerCase().trim().includes("managerial")) || "";
+            finalStatusKey = headers.find(h => h.toLowerCase().trim() === "status" || h.toLowerCase().trim().includes("final status")) || "";
+
+            currentFilteredData = [...allData];
+            buildTable(allData);
+            populateFilters(allData);
+            updateStats(allData);
+        },
+        error:function(err){
+            console.error(err);
+            document.getElementById("tableBodyContent").innerHTML = "<tr><td colspan='30' style='padding:25px; background:#fff; color:#c62828; font-weight:bold;'>❌ Connection Offline: Verify that your source Google Sheet is set to 'Publish to Web' as a CSV format.</td></tr>";
+        }
+    });
+}
+
+function buildTable(data){
+    let thead=document.querySelector("#placementTable thead");
+    let tbody=document.querySelector("#placementTable tbody");
+    thead.innerHTML=""; tbody.innerHTML="";
+
+    if(data.length===0){
+        tbody.innerHTML="<tr><td colspan='30' style='padding:20px; background:#fff;'>No Records Found Match Your Selections</td></tr>";
+        return;
+    }
+
+    let headers=Object.keys(data[0]);
+    let tr=document.createElement("tr");
+    headers.forEach(h=>{
+        let th=document.createElement("th"); th.innerText=h; tr.appendChild(th);
+    });
+    thead.appendChild(tr);
+
+    data.forEach(row=>{
+        let tr=document.createElement("tr");
+        headers.forEach(h=>{
+            let td=document.createElement("td");
+            let value = row[h] ? row[h].toString().trim() : "";
+            if(value.includes("http")){
+                let a=document.createElement("a"); a.href=value; a.target="_blank"; a.className="link-btn";
+                if(h.toLowerCase().includes("intern")){ a.innerText="📄 Internship Letter"; }
+                else if(h.toLowerCase().includes("offer")){ a.innerText="📄 Offer Letter"; }
+                else { a.innerText="📄 View"; }
+                td.appendChild(a);
+            } else { td.innerText=value; }
+            tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+    });
+}
+
+function populateFilters(data){
+    let getOpts = (key) => key ? [...new Set(data.map(d=>(d[key] || "").trim()).filter(Boolean))].sort() : [];
+
+    let fillSel = (id, opts, def) => {
+        let el = document.getElementById(id);
+        if(!el) return;
+        el.innerHTML = `<option value="">${def}</option>`;
+        opts.forEach(v => el.add(new Option(v,v)));
+    };
+
+    fillSel("branchFilter", getOpts(branchKey), "All Branches");
+    fillSel("appliedCompanyFilter", getOpts(appliedCompanyKey), "Applied Company");
+    fillSel("roleFilter", getOpts(roleKey), "Role Applied");
+    fillSel("tpoFilter", getOpts(tpoKey), "Shortlisted by TPO");
+    fillSel("companyShortlistFilter", getOpts(companyShortlistKey), "Shortlisted by Company");
+    fillSel("paperTest1Filter", getOpts(paperTest1Key), "Pen & Paper Test 1 Status");
+    fillSel("paperTest2Filter", getOpts(paperTest2Key), "Pen & Paper Test 2 Status");
+    fillSel("gdFilter", getOpts(gdKey), "GD Cleared?");
+    fillSel("oa1Filter", getOpts(
