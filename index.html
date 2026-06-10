@@ -424,6 +424,7 @@ table{ min-width:1400px; }
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
 const csvURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRiETxVy0sYxBeApgtsDzUGSTzlrH5IjVjYh83cqlq0XLsAeOK9w7KYRzBVc8V9ah4jEPRzdZkEq9i5/pub?gid=1926306429&single=true&output=csv";
@@ -619,7 +620,7 @@ function applyFilters(){
         && matchVal(tech1Key, tech1Value)
         && matchVal(tech2Key, tech2Value)
         && matchVal(hrKey, hrValue)
-        && matchVal(managerialValue, managerialValue)
+        && matchVal(managerialKey, managerialValue)
         && matchVal(finalStatusKey, finalStatusValue);
     });
 
@@ -627,9 +628,23 @@ function applyFilters(){
     updateStats(currentFilteredData);
 }
 
+// Added downloadExcel function without affecting any existing variables or parameters
+function downloadExcel() {
+    if (!currentFilteredData || currentFilteredData.length === 0) {
+        alert("No data available to download based on your current filters.");
+        return;
+    }
+    // Generates internal structured data from your array of current state rows
+    const worksheet = XLSX.utils.json_to_sheet(currentFilteredData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Filtered Placement Data");
+    
+    // Triggers direct local browser package download as a true '.xlsx' file format
+    XLSX.writeFile(workbook, "MGIT_Filtered_Placement_Data.xlsx");
+}
+
 document.querySelectorAll(".filter-container select").forEach(el => el.addEventListener("change", applyFilters));
 document.getElementById("search").addEventListener("keyup", applyFilters);
 </script>
-
 </body>
 </html>
