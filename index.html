@@ -17,7 +17,7 @@ box-sizing:border-box;
 body{
 font-family:Arial, sans-serif;
 padding:15px;
-padding-bottom: 80px; 
+padding-bottom: 40px; 
 overflow-x:hidden;
 color:white;
 background:linear-gradient(-45deg,#0f2027,#203a43,#2c5364,#1c1c3c);
@@ -203,7 +203,7 @@ box-shadow:0 0 10px rgba(255,255,255,0.5);
 border:1px solid #00c6ff;
 }
 
-/* New Dedicated Middle Bar between Filters and Table */
+/* Middle Bar between Filters and Table */
 .middle-action-bar {
 display: flex;
 justify-content: flex-end;
@@ -487,7 +487,7 @@ function buildTable(data){
     thead.innerHTML=""; tbody.innerHTML="";
 
     if(data.length===0){
-        tbody.innerHTML="<tr><td colspan='30'>No Records Found Match Your Selections</td></tr>";
+        tbody.innerHTML="<tr><td colspan='30' style='padding:20px; background:#fff; color:#222;'>No Records Found Match Your Selections</td></tr>";
         return;
     }
 
@@ -532,4 +532,120 @@ function populateFilters(data){
     fillSel("companyShortlistFilter", getOpts(companyShortlistKey), "Shortlisted by Company");
     fillSel("paperTest1Filter", getOpts(paperTest1Key), "Pen & Paper Test 1 Status");
     fillSel("paperTest2Filter", getOpts(paperTest2Key), "Pen & Paper Test 2 Status");
-    fillSel("gdFilter", getOpts(gdKey), "GD Cle
+    fillSel("gdFilter", getOpts(gdKey), "GD Cleared?");
+    fillSel("oa1Filter", getOpts(oa1Key), "OA-1 Cleared?");
+    fillSel("oa2Filter", getOpts(oa2Key), "OA-2 Cleared?");
+    fillSel("oa3Filter", getOpts(oa3Key), "OA-3 Cleared?");
+    fillSel("tech1Filter", getOpts(tech1Key), "Tech Round-1 Cleared?");
+    fillSel("tech2Filter", getOpts(tech2Key), "Tech Round-2 Cleared?");
+    fillSel("hrFilter", getOpts(hrKey), "HR Interview Cleared?");
+    fillSel("managerialFilter", getOpts(managerialKey), "Managerial Round Cleared?");
+    fillSel("finalStatusFilter", getOpts(finalStatusKey), "Final Status of Student");
+}
+
+function updateStats(data){
+    document.getElementById("statRegistrations").innerText = data.length;
+    let uniqueComps = new Set();
+    let tpoCount = 0, compShortCount = 0, paper1Count = 0, paper2Count = 0;
+    let gdCount = 0, oa1Count = 0, oa2Count = 0, oa3Count = 0;
+    let tech1Count = 0, tech2Count = 0, hrCount = 0, managerialCount = 0, selectedCount = 0;
+
+    let checkYes = (val) => String(val).toLowerCase().trim() === "yes";
+
+    data.forEach(row => {
+        if (appliedCompanyKey && row[appliedCompanyKey]) uniqueComps.add(row[appliedCompanyKey].toString().trim());
+        if (tpoKey && checkYes(row[tpoKey])) tpoCount++;
+        if (companyShortlistKey && checkYes(row[companyShortlistKey])) compShortCount++;
+        if (paperTest1Key && checkYes(row[paperTest1Key])) paper1Count++;
+        if (paperTest2Key && checkYes(row[paperTest2Key])) paper2Count++;
+        if (gdKey && checkYes(row[gdKey])) gdCount++;
+        if (oa1Key && checkYes(row[oa1Key])) oa1Count++;
+        if (oa2Key && checkYes(row[oa2Key])) oa2Count++;
+        if (oa3Key && checkYes(row[oa3Key])) oa3Count++;
+        if (tech1Key && checkYes(row[tech1Key])) tech1Count++;
+        if (tech2Key && checkYes(row[tech2Key])) tech2Count++;
+        if (hrKey && checkYes(row[hrKey])) hrCount++;
+        if (managerialKey && checkYes(row[managerialKey])) managerialCount++;
+        if (finalStatusKey && String(row[finalStatusKey]).toLowerCase().includes("selected")) selectedCount++;
+    });
+
+    document.getElementById("statCompanies").innerText = uniqueComps.size;
+    document.getElementById("statTpo").innerText = tpoCount;
+    document.getElementById("statCompanyShort").innerText = compShortCount;
+    document.getElementById("statPaper1").innerText = paper1Count;
+    document.getElementById("statPaper2").innerText = paper2Count;
+    document.getElementById("statGd").innerText = gdCount;
+    document.getElementById("statOa1").innerText = oa1Count;
+    document.getElementById("statOa2").innerText = oa2Count;
+    document.getElementById("statOa3").innerText = oa3Count;
+    document.getElementById("statTech1").innerText = tech1Count;
+    document.getElementById("statTech2").innerText = tech2Count;
+    document.getElementById("statHr").innerText = hrCount;
+    document.getElementById("statManagerial").innerText = managerialCount;
+    document.getElementById("statSelected").innerText = selectedCount;
+}
+
+function applyFilters(){
+    let search=document.getElementById("search").value.toLowerCase();
+    let branch=document.getElementById("branchFilter").value;
+    let appliedComp=document.getElementById("appliedCompanyFilter").value;
+    let roleValue=document.getElementById("roleFilter").value;
+    let tpo=document.getElementById("tpoFilter").value;
+    let companyShort=document.getElementById("companyShortlistFilter").value;
+    let paperTest1=document.getElementById("paperTest1Filter").value;
+    let paperTest2=document.getElementById("paperTest2Filter").value;
+    let gdValue=document.getElementById("gdFilter").value;
+    let oa1Value=document.getElementById("oa1Filter").value;
+    let oa2Value=document.getElementById("oa2Filter").value;
+    let oa3Value=document.getElementById("oa3Filter").value;
+    let tech1Value=document.getElementById("tech1Filter").value;
+    let tech2Value=document.getElementById("tech2Filter").value;
+    let hrValue=document.getElementById("hrFilter").value;
+    let managerialValue=document.getElementById("managerialFilter").value;
+    let finalStatusValue=document.getElementById("finalStatusFilter").value;
+
+    currentFilteredData=allData.filter(row=>{
+        let text=JSON.stringify(row).toLowerCase();
+
+        let matchVal = (key, filterVal) => !filterVal || (row[key] && String(row[key]).trim() === filterVal);
+
+        return text.includes(search)
+        && matchVal(branchKey, branch)
+        && matchVal(appliedCompanyKey, appliedComp)
+        && matchVal(roleKey, roleValue)
+        && matchVal(tpoKey, tpo)
+        && matchVal(companyShortlistKey, companyShort)
+        && matchVal(paperTest1Key, paperTest1)
+        && matchVal(paperTest2Key, paperTest2)
+        && matchVal(gdKey, gdValue)
+        && matchVal(oa1Key, oa1Value)
+        && matchVal(oa2Key, oa2Value)
+        && matchVal(oa3Key, oa3Value)
+        && matchVal(tech1Key, tech1Value)
+        && matchVal(tech2Key, tech2Value)
+        && matchVal(hrKey, hrValue)
+        && matchVal(managerialKey, managerialValue)
+        && matchVal(finalStatusKey, finalStatusValue);
+    });
+
+    buildTable(currentFilteredData);
+    updateStats(currentFilteredData);
+}
+
+document.querySelectorAll(".filter-container select").forEach(el => el.addEventListener("change", applyFilters));
+document.getElementById("search").addEventListener("keyup", applyFilters);
+
+function downloadExcel() {
+    if (!currentFilteredData || currentFilteredData.length === 0) {
+        alert("No visible record data to pull right now!");
+        return;
+    }
+    let worksheet = XLSX.utils.json_to_sheet(currentFilteredData);
+    let workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Filtered Placements");
+    XLSX.writeFile(workbook, "MGIT_Filtered_Placement_Data.xlsx");
+}
+</script>
+
+</body>
+</html>
