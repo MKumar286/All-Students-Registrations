@@ -463,9 +463,12 @@ Papa.parse(csvURL,{
         paperTest1Key = headers.find(h => h.toLowerCase().trim().includes("pen") && h.toLowerCase().trim().includes("1")) || "";
         paperTest2Key = headers.find(h => h.toLowerCase().trim().includes("pen") && h.toLowerCase().trim().includes("2")) || "";
         gdKey = headers.find(h => h.toLowerCase().trim().includes("gd") || h.toLowerCase().trim().includes("group discussion")) || "";
-        oa1Key = headers.find(h => h.toLowerCase().trim().includes("oa") && h.toLowerCase().trim().includes("1")) || headers.find(h => h.toUpperCase().includes("OA-1")) || headers.find(h => h.toUpperCase().includes("OA 1")) || "";
-        oa2Key = headers.find(h => h.toLowerCase().trim().includes("oa") && h.toLowerCase().trim().includes("2")) || headers.find(h => h.toUpperCase().includes("OA-2")) || headers.find(h => h.toUpperCase().includes("OA 2")) || "";
-        oa3Key = headers.find(h => h.toLowerCase().trim().includes("oa") && h.toLowerCase().trim().includes("3")) || headers.find(h => h.toUpperCase().includes("OA-3")) || headers.find(h => h.toUpperCase().includes("OA 3")) || "";
+        
+        // Comprehensive string matching algorithm to safeguard against varying format styles for OA headers
+        oa1Key = headers.find(h => { let s = h.toLowerCase(); return (s.includes("oa") || s.includes("online assessment") || s.includes("online test")) && s.includes("1"); }) || "";
+        oa2Key = headers.find(h => { let s = h.toLowerCase(); return (s.includes("oa") || s.includes("online assessment") || s.includes("online test")) && s.includes("2"); }) || "";
+        oa3Key = headers.find(h => { let s = h.toLowerCase(); return (s.includes("oa") || s.includes("online assessment") || s.includes("online test")) && s.includes("3"); }) || "";
+        
         tech1Key = headers.find(h => h.toLowerCase().trim().includes("tech") && h.toLowerCase().trim().includes("1")) || "";
         tech2Key = headers.find(h => h.toLowerCase().trim().includes("tech") && h.toLowerCase().trim().includes("2")) || "";
         hrKey = headers.find(h => h.toLowerCase().trim().includes("hr")) || "";
