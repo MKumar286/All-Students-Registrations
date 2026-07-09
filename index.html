@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <title>MGIT Placement Portal</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">       
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>    
+<style>
 *{
 margin:0;
 padding:0;
@@ -48,7 +48,7 @@ body::after{
 content:"";
 position:fixed;
 width:400px;
-height:400px; 
+height:400px;
 background:rgba(255,0,150,0.15);
 border-radius:50%;
 bottom:-100px;
@@ -158,7 +158,7 @@ margin-top: 2px;
 .filter-container {
 display: flex;
 flex-direction: column;
-background:rgba(255,255,255,0.12); 
+background:rgba(255,255,255,0.12);
 padding: 10px;
 border-radius:0 0 14px 14px;
 backdrop-filter:blur(10px);
@@ -191,7 +191,7 @@ color: #222;
 }
 
 .controls input[type="text"] {
-grid-column: span 2; 
+grid-column: span 2;
 }
 
 .controls input:focus,
@@ -237,7 +237,7 @@ animation: floatInSpace 3s ease-in-out infinite;
 .excel-btn:hover {
 background: linear-gradient(135deg, #248a52, #13633a);
 border-color: #00f5d4;
-transform: scale(1.03) translateY(-2px); 
+transform: scale(1.03) translateY(-2px);
 }
 
 .excel-btn:active {
@@ -490,7 +490,13 @@ Papa.parse(csvURL,{
         roleKey = headers.find(h => h.toLowerCase().trim().includes("profile") || h.toLowerCase().trim().includes("role")) || "";
         tpoKey = headers.find(h => h.toLowerCase().trim().includes("tpo")) || "";
         companyShortlistKey = headers.find(h => h.toLowerCase().trim().includes("shortlist")) || "";
-        attendanceKey = headers.find(h => h.toLowerCase().trim().includes("attendance")) || "";
+        
+        // UPGRADED ATTENDANCE KEY LOOKUP PARAMETERS
+        attendanceKey = headers.find(h => {
+            let s = h.toLowerCase().trim();
+            return s.includes("attendance") || s.includes("present") || s.includes("presentees") || s === "att" || s === "drive attendance";
+        }) || "";
+        
         rollKey = headers.find(h => h.toLowerCase().trim().includes("roll") || h.toLowerCase().trim().includes("htno")) || "";
         paperTest1Key = headers.find(h => h.toLowerCase().trim().includes("pen") && h.toLowerCase().trim().includes("1")) || "";
         paperTest2Key = headers.find(h => h.toLowerCase().trim().includes("pen") && h.toLowerCase().trim().includes("2")) || "";
