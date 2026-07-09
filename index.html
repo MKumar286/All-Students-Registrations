@@ -15,7 +15,7 @@ box-sizing:border-box;
 body{
 font-family:Arial, sans-serif;
 padding:15px;
-padding-bottom: 80px; 
+padding-bottom: 40px; 
 overflow-x:hidden;
 color:white;
 background:linear-gradient(-45deg,#0f2027,#203a43,#2c5364,#1c1c3c);
@@ -171,7 +171,7 @@ gap: 8px;
 
 .controls{
 display: grid;
-grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
 gap: 8px;
 width: 100%;
 }
@@ -253,6 +253,7 @@ box-shadow:0 8px 25px rgba(0,0,0,0.35);
 scroll-behavior:smooth;
 background:rgba(255,255,255,0.05);
 padding-bottom:6px;
+-webkit-overflow-scrolling: touch;
 }
 
 .table-container::-webkit-scrollbar{
@@ -336,48 +337,35 @@ transform:scale(1.06);
 background:linear-gradient(135deg,#43cea2,#185a9d);
 }
 
-.pager-btn {
-background: rgba(255, 255, 255, 0.2);
-border: 1px solid rgba(255, 255, 255, 0.3);
-color: white;
-padding: 5px 12px;
-border-radius: 6px;
-cursor: pointer;
-font-size: 11px;
-font-weight: bold;
-transition: 0.2s;
-}
-.pager-btn:hover:not(:disabled) {
-background: #00c6ff;
-border-color: #00c6ff;
-color: #111;
-}
-.pager-btn:disabled {
-opacity: 0.4;
-cursor: not-allowed;
+/* --- ADVANCED RESPONSIVENESS (Laptops, Tablets & Mobiles) --- */
+@media (max-width: 1200px) {
+h1 { font-size: 28px; }
+.stats-row { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.controls { grid-template-columns: repeat(4, 1fr); }
 }
 
-@media(max-width:768px){
-body{
-padding:10px;
-padding-bottom: 40px;
-}
-h1{ font-size:24px; }
-h3{ font-size:14px; }
-.stats-container{ padding: 6px; gap: 5px; }
-.stats-row { grid-template-columns: repeat(2, 1fr); gap: 5px; }
-.stats-card{ padding: 6px 8px; font-size: 10px; min-height: 48px; }
-.stats-card span { font-size: 13px; }
-.filter-container{ padding: 8px; gap: 6px; }
+@media (max-width: 768px) {
+body { padding: 10px; }
+h1 { font-size: 22px; }
+h3 { font-size: 13px; }
+.stats-container { padding: 6px; gap: 6px; }
+.stats-row { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.stats-card { padding: 6px; font-size: 10.5px; min-height: 50px; }
+.stats-card span { font-size: 13.5px; }
+.filter-container { padding: 8px; gap: 6px; }
 .controls { grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .controls input[type="text"] { grid-column: span 2; }
-.controls input, .controls select{ height:32px; font-size:12px; padding: 4px 6px; }
-th{ font-size:11px; padding:6px 8px; }
-td{ font-size:11px; padding:6px 8px; }
-table{ min-width:1400px; }
-.middle-action-bar { flex-direction: column-reverse; gap: 10px; align-items: center; }
-.excel-btn { padding: 8px 14px; font-size: 11.5px; width: 100%; justify-content: center; }
-#pagerControls { margin-right: 0 !important; width: 100%; justify-content: center; }
+.controls input, .controls select { height: 34px; font-size: 11.5px; }
+th, td { font-size: 11px; padding: 7px 9px; }
+table { min-width: 1300px; }
+.middle-action-bar { justify-content: center; width: 100%; }
+.excel-btn { width: 100%; justify-content: center; padding: 10px; font-size: 13px; }
+}
+
+@media (max-width: 480px) {
+.stats-row { grid-template-columns: 1fr 1fr; }
+.controls { grid-template-columns: 1fr; }
+.controls input[type="text"] { grid-column: span 1; }
 }
 </style>
 </head>
@@ -411,19 +399,19 @@ table{ min-width:1400px; }
 </div>
 
 <div class="filter-container">
-    <div class="controls" style="margin-bottom: 6px;">
+    <div class="controls" style="margin-bottom: 8px;">
         <input type="text" id="search" placeholder="Search student / roll / company">
         <select id="branchFilter"><option value="">All Branches</option></select>
         <select id="appliedCompanyFilter"><option value="">Applied Company</option></select>
         <select id="roleFilter"><option value="">Role Applied</option></select>
         <select id="tpoFilter"><option value="">Shortlisted by TPO</option></select>
         <select id="companyShortlistFilter"><option value="">Shortlisted by Company</option></select>
-        <select id="attendanceFilter"><option value="">Presentees for the drive</option></select>
+        <select id="attendanceFilter"><option value="">Attendance</option></select>
+        <select id="paperTest1Filter"><option value="">Pen & Paper Test 1 Status</option></select>
     </div>
     
     <div class="controls">
-        <select id="paperTest1Filter"><option value="">Pen & Paper Test Status</option></select>
-        <select id="paperTest2Filter"><option value="">Pen & Paper Test Status</option></select>
+        <select id="paperTest2Filter"><option value="">Pen & Paper Test 2 Status</option></select>
         <select id="gdFilter"><option value="">GD Cleared?</option></select>
         <select id="oa1Filter"><option value="">OA-1 Cleared?</option></select>
         <select id="oa2Filter"><option value="">OA-2 Cleared?</option></select>
@@ -457,8 +445,6 @@ const csvURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRiETxVy0sYxBeApgt
 
 let allData=[];
 let currentFilteredData=[]; 
-let currentPage = 1;
-const rowsPerPage = 50;
 
 let branchKey = "", appliedCompanyKey = "", roleKey = "", tpoKey = "", companyShortlistKey = "", attendanceKey = "";
 let paperTest1Key = "", paperTest2Key = "", rollKey = "", gdKey = "", oa1Key = "", oa2Key = "", oa3Key = "";
@@ -491,7 +477,6 @@ Papa.parse(csvURL,{
         tpoKey = headers.find(h => h.toLowerCase().trim().includes("tpo")) || "";
         companyShortlistKey = headers.find(h => h.toLowerCase().trim().includes("shortlist")) || "";
         
-        // UPGRADED ATTENDANCE KEY LOOKUP PARAMETERS
         attendanceKey = headers.find(h => {
             let s = h.toLowerCase().trim();
             return s.includes("attendance") || s.includes("present") || s.includes("presentees") || s === "att" || s === "drive attendance";
@@ -524,12 +509,11 @@ Papa.parse(csvURL,{
 });
 
 function updateDashboard() {
-    buildTable(currentFilteredData, currentPage);
+    buildTable(currentFilteredData);
     updateStats(currentFilteredData);
-    renderPaginationControls();
 }
 
-function buildTable(data, page = 1){
+function buildTable(data){
     let thead=document.querySelector("#placementTable thead");
     let tbody=document.querySelector("#placementTable tbody");
     thead.innerHTML=""; tbody.innerHTML="";
@@ -546,11 +530,7 @@ function buildTable(data, page = 1){
     });
     thead.appendChild(tr);
 
-    let start = (page - 1) * rowsPerPage;
-    let end = start + rowsPerPage;
-    let pageData = data.slice(start, end);
-
-    pageData.forEach(row=>{
+    data.forEach(row=>{
         let tr=document.createElement("tr");
         headers.forEach(h=>{
             let td=document.createElement("td");
@@ -583,7 +563,7 @@ function populateInitialFilters(data){
     fillSel("roleFilter", getOpts(roleKey), "Role Applied");
     fillSel("tpoFilter", getOpts(tpoKey), "Shortlisted by TPO");
     fillSel("companyShortlistFilter", getOpts(companyShortlistKey), "Shortlisted by Company");
-    fillSel("attendanceFilter", getOpts(attendanceKey), "Presentees for the drive");
+    fillSel("attendanceFilter", getOpts(attendanceKey), "Attendance");
     fillSel("paperTest1Filter", getOpts(paperTest1Key), "Pen & Paper Test 1 Status");
     fillSel("paperTest2Filter", getOpts(paperTest2Key), "Pen & Paper Test 2 Status");
     fillSel("gdFilter", getOpts(gdKey), "GD Cleared?");
@@ -644,32 +624,7 @@ function applyFilters() {
         return true;
     });
 
-    currentPage = 1;
     updateDashboard();
-}
-
-function renderPaginationControls() {
-    let actionBar = document.querySelector(".middle-action-bar");
-    let existingPager = document.getElementById("pagerControls");
-    if(existingPager) existingPager.remove();
-
-    let totalPages = Math.ceil(currentFilteredData.length / rowsPerPage);
-    if(totalPages <= 1) return;
-
-    let pager = document.createElement("div");
-    pager.id = "pagerControls";
-    pager.style.cssText = "display:flex; align-items:center; gap:10px; margin-right:auto; font-size:12px; color:#fff;";
-    
-    pager.innerHTML = `
-        <button id="prevBtn" class="pager-btn" ${currentPage===1?'disabled':''}>◀ Prev</button>
-        <span>Page ${currentPage} of ${totalPages} (${currentFilteredData.length} records)</span>
-        <button id="nextBtn" class="pager-btn" ${currentPage===totalPages?'disabled':''}>Next ▶</button>
-    `;
-    
-    actionBar.insertBefore(pager, actionBar.firstChild);
-
-    document.getElementById("prevBtn").onclick = () => { if(currentPage > 1) { currentPage--; updateDashboard(); }};
-    document.getElementById("nextBtn").onclick = () => { if(currentPage < totalPages) { currentPage++; updateDashboard(); }};
 }
 
 function setupEventListeners() {
