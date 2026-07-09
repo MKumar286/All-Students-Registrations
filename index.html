@@ -171,9 +171,17 @@ gap: 8px;
 
 .controls{
 display: grid;
-grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
 gap: 8px;
 width: 100%;
+}
+
+/* Force perfectly uniform columns on Laptops/Desktops to avoid 4-row splitting */
+.controls-row1 {
+grid-template-columns: repeat(9, 1fr);
+}
+
+.controls-row2 {
+grid-template-columns: repeat(10, 1fr);
 }
 
 .controls input,
@@ -181,7 +189,7 @@ width: 100%;
 width: 100%;
 height: 32px; 
 padding: 4px 6px; 
-font-size: 11.5px; 
+font-size: 11px; 
 border-radius: 6px;
 border: 1px solid rgba(255,255,255,0.2);
 outline: none;
@@ -337,11 +345,15 @@ transform:scale(1.06);
 background:linear-gradient(135deg,#43cea2,#185a9d);
 }
 
-/* --- ADVANCED RESPONSIVENESS (Laptops, Tablets & Mobiles) --- */
-@media (max-width: 1200px) {
+/* --- RESPONSIVE MEDIA BREAKOUTS --- */
+@media (max-width: 1300px) {
 h1 { font-size: 28px; }
+/* Revert to flexible layouts when screen workspace narrows down */
+.controls-row1, .controls-row2 { grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); }
+}
+
+@media (max-width: 992px) {
 .stats-row { grid-template-columns: repeat(4, 1fr); gap: 6px; }
-.controls { grid-template-columns: repeat(4, 1fr); }
 }
 
 @media (max-width: 768px) {
@@ -353,7 +365,7 @@ h3 { font-size: 13px; }
 .stats-card { padding: 6px; font-size: 10.5px; min-height: 50px; }
 .stats-card span { font-size: 13.5px; }
 .filter-container { padding: 8px; gap: 6px; }
-.controls { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.controls-row1, .controls-row2 { grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .controls input[type="text"] { grid-column: span 2; }
 .controls input, .controls select { height: 34px; font-size: 11.5px; }
 th, td { font-size: 11px; padding: 7px 9px; }
@@ -364,7 +376,7 @@ table { min-width: 1300px; }
 
 @media (max-width: 480px) {
 .stats-row { grid-template-columns: 1fr 1fr; }
-.controls { grid-template-columns: 1fr; }
+.controls-row1, .controls-row2 { grid-template-columns: 1fr; }
 .controls input[type="text"] { grid-column: span 1; }
 }
 </style>
@@ -385,8 +397,8 @@ table { min-width: 1300px; }
         <div class="stats-card border-cyan">Shortlisted by Company <span id="statCompanyShort">0</span></div>
         <div class="stats-card border-cyan">Students Attendance <span id="statAttendance">0</span></div>
         <div class="stats-card border-orange">Paper Test-1 Cleared <span id="statPaper1">0</span></div>
-        <div class="stats-card border-orange">Paper Test-2 Cleared <span id="statPaper2">0</span></div>
         <div class="stats-card border-amber">GD Cleared <span id="statGd">0</span></div>
+        <div class="stats-card border-orange">Paper Test-2 Cleared <span id="statPaper2">0</span></div>
         <div class="stats-card border-amber">OA-1 Cleared <span id="statOa1">0</span></div>
         <div class="stats-card border-amber">OA-2 Cleared <span id="statOa2">0</span></div>
         <div class="stats-card border-amber">OA-3 Cleared <span id="statOa3">0</span></div>
@@ -399,7 +411,7 @@ table { min-width: 1300px; }
 </div>
 
 <div class="filter-container">
-    <div class="controls" style="margin-bottom: 8px;">
+    <div class="controls controls-row1" style="margin-bottom: 8px;">
         <input type="text" id="search" placeholder="Search student / roll / company">
         <select id="branchFilter"><option value="">All Branches</option></select>
         <select id="appliedCompanyFilter"><option value="">Applied Company</option></select>
@@ -410,7 +422,7 @@ table { min-width: 1300px; }
         <select id="paperTest1Filter"><option value="">Pen & Paper Test 1 Status</option></select>
     </div>
     
-    <div class="controls">
+    <div class="controls controls-row2">
         <select id="paperTest2Filter"><option value="">Pen & Paper Test 2 Status</option></select>
         <select id="gdFilter"><option value="">GD Cleared?</option></select>
         <select id="oa1Filter"><option value="">OA-1 Cleared?</option></select>
@@ -582,133 +594,4 @@ function applyFilters() {
     let branchVal = document.getElementById("branchFilter").value;
     let compVal = document.getElementById("appliedCompanyFilter").value;
     let roleVal = document.getElementById("roleFilter").value;
-    let tpoVal = document.getElementById("tpoFilter").value;
-    let compShortVal = document.getElementById("companyShortlistFilter").value;
-    let attendanceVal = document.getElementById("attendanceFilter").value;
-    let paper1Val = document.getElementById("paperTest1Filter").value;
-    let paper2Val = document.getElementById("paperTest2Filter").value;
-    let gdVal = document.getElementById("gdFilter").value;
-    let oa1Val = document.getElementById("oa1Filter").value;
-    let oa2Val = document.getElementById("oa2Filter").value;
-    let oa3Val = document.getElementById("oa3Filter").value;
-    let tech1Val = document.getElementById("tech1Filter").value;
-    let tech2Val = document.getElementById("tech2Filter").value;
-    let hrVal = document.getElementById("hrFilter").value;
-    let managerialVal = document.getElementById("managerialFilter").value;
-    let statusVal = document.getElementById("finalStatusFilter").value;
-
-    currentFilteredData = allData.filter(row => {
-        if (searchVal) {
-            let matchesSearch = Object.values(row).some(val => String(val).toLowerCase().includes(searchVal));
-            if (!matchesSearch) return false;
-        }
-
-        if (branchVal && (row[branchKey] || "").trim() !== branchVal) return false;
-        if (compVal && (row[appliedCompanyKey] || "").trim() !== compVal) return false;
-        if (roleVal && (row[roleKey] || "").trim() !== roleVal) return false;
-        if (tpoVal && (row[tpoKey] || "").trim() !== tpoVal) return false;
-        if (compShortVal && (row[companyShortlistKey] || "").trim() !== compShortVal) return false;
-        if (attendanceVal && (row[attendanceKey] || "").trim() !== attendanceVal) return false;
-        if (paper1Val && (row[paperTest1Key] || "").trim() !== paper1Val) return false;
-        if (paper2Val && (row[paperTest2Key] || "").trim() !== paper2Val) return false;
-        if (gdVal && (row[gdKey] || "").trim() !== gdVal) return false;
-        if (oa1Val && (row[oa1Key] || "").trim() !== oa1Val) return false;
-        if (oa2Val && (row[oa2Key] || "").trim() !== oa2Val) return false;
-        if (oa3Val && (row[oa3Key] || "").trim() !== oa3Val) return false;
-        if (tech1Val && (row[tech1Key] || "").trim() !== tech1Val) return false;
-        if (tech2Val && (row[tech2Key] || "").trim() !== tech2Val) return false;
-        if (hrVal && (row[hrKey] || "").trim() !== hrVal) return false;
-        if (managerialVal && (row[managerialKey] || "").trim() !== managerialVal) return false;
-        if (statusVal && (row[finalStatusKey] || "").trim() !== statusVal) return false;
-
-        return true;
-    });
-
-    updateDashboard();
-}
-
-function setupEventListeners() {
-    const filterIds = [
-        "branchFilter", "appliedCompanyFilter", "roleFilter", "tpoFilter", 
-        "companyShortlistFilter", "attendanceFilter", "paperTest1Filter", "paperTest2Filter", "gdFilter", 
-        "oa1Filter", "oa2Filter", "oa3Filter", "tech1Filter", "tech2Filter", 
-        "hrFilter", "managerialFilter", "finalStatusFilter"
-    ];
-    
-    filterIds.forEach(id => {
-        let el = document.getElementById(id);
-        if (el) el.addEventListener("change", applyFilters);
-    });
-    
-    let searchEl = document.getElementById("search");
-    if(searchEl) searchEl.addEventListener("input", debounce(applyFilters, 300));
-}
-
-function updateStats(data){
-    document.getElementById("statRegistrations").innerText = data.length;
-    let uniqueComps = new Set();
-    let tpoCount = 0, compShortCount = 0, attendanceCount = 0, paper1Count = 0, paper2Count = 0;
-    let gdCount = 0, oa1Count = 0, oa2Count = 0, oa3Count = 0;
-    let tech1Count = 0, tech2Count = 0, hrCount = 0, managerialCount = 0, selectedCount = 0;
-
-    let checkYes = (val) => {
-        if(!val) return false;
-        let txt = String(val).toLowerCase().trim();
-        return txt === "yes" || txt === "cleared" || txt === "pass" || txt === "shortlisted";
-    };
-
-    let checkPresent = (val) => {
-        if(!val) return false;
-        let txt = String(val).toLowerCase().trim();
-        return txt === "p" || txt === "present";
-    };
-
-    data.forEach(row => {
-        if (appliedCompanyKey && row[appliedCompanyKey]) uniqueComps.add(row[appliedCompanyKey].toString().trim());
-        if (tpoKey && checkYes(row[tpoKey])) tpoCount++;
-        if (companyShortlistKey && checkYes(row[companyShortlistKey])) compShortCount++;
-        if (attendanceKey && checkPresent(row[attendanceKey])) attendanceCount++;
-        if (paperTest1Key && checkYes(row[paperTest1Key])) paper1Count++;
-        if (paperTest2Key && checkYes(row[paperTest2Key])) paper2Count++;
-        if (gdKey && checkYes(row[gdKey])) gdCount++;
-        if (oa1Key && checkYes(row[oa1Key])) oa1Count++;
-        if (oa2Key && checkYes(row[oa2Key])) oa2Count++;
-        if (oa3Key && checkYes(row[oa3Key])) oa3Count++;
-        if (tech1Key && checkYes(row[tech1Key])) tech1Count++;
-        if (tech2Key && checkYes(row[tech2Key])) tech2Count++;
-        if (hrKey && checkYes(row[hrKey])) hrCount++;
-        if (managerialKey && checkYes(row[managerialKey])) managerialCount++;
-        if (finalStatusKey && String(row[finalStatusKey]).toLowerCase().trim().match(/(selected|placed|hired)/)) selectedCount++;
-    });
-
-    document.getElementById("statCompanies").innerText = uniqueComps.size;
-    document.getElementById("statTpo").innerText = tpoCount;
-    document.getElementById("statCompanyShort").innerText = compShortCount;
-    document.getElementById("statAttendance").innerText = attendanceCount;
-    document.getElementById("statPaper1").innerText = paper1Count;
-    document.getElementById("statPaper2").innerText = paper2Count;
-    document.getElementById("statGd").innerText = gdCount;
-    document.getElementById("statOa1").innerText = oa1Count;
-    document.getElementById("statOa2").innerText = oa2Count;
-    document.getElementById("statOa3").innerText = oa3Count;
-    document.getElementById("statTech1").innerText = tech1Count;
-    document.getElementById("statTech2").innerText = tech2Count;
-    document.getElementById("statHr").innerText = hrCount;
-    document.getElementById("statManagerial").innerText = managerialCount;
-    document.getElementById("statSelected").innerText = selectedCount;
-}
-
-function downloadExcel() {
-    if (!currentFilteredData || currentFilteredData.length === 0) {
-        alert("No visible record data to pull right now!");
-        return;
-    }
-    let worksheet = XLSX.utils.json_to_sheet(currentFilteredData);
-    let workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Filtered Placements");
-    XLSX.writeFile(workbook, "MGIT_Filtered_Placement_Data.xlsx");
-}
-</script>
-
-</body>
-</html>
+    let tpoVal = document.
