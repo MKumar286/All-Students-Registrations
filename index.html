@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
+<meta charset="UTF-8">
 <title>MGIT Placement Portal</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -202,7 +201,6 @@ box-shadow:0 0 10px rgba(255,255,255,0.5);
 border:1px solid #00c6ff;
 }
 
-/* Middle Layout Bar Container */
 .middle-action-bar {
 display: flex;
 justify-content: flex-end;
@@ -338,6 +336,27 @@ transform:scale(1.06);
 background:linear-gradient(135deg,#43cea2,#185a9d);
 }
 
+.pager-btn {
+background: rgba(255, 255, 255, 0.2);
+border: 1px solid rgba(255, 255, 255, 0.3);
+color: white;
+padding: 5px 12px;
+border-radius: 6px;
+cursor: pointer;
+font-size: 11px;
+font-weight: bold;
+transition: 0.2s;
+}
+.pager-btn:hover:not(:disabled) {
+background: #00c6ff;
+border-color: #00c6ff;
+color: #111;
+}
+.pager-btn:disabled {
+opacity: 0.4;
+cursor: not-allowed;
+}
+
 @media(max-width:768px){
 body{
 padding:10px;
@@ -356,11 +375,11 @@ h3{ font-size:14px; }
 th{ font-size:11px; padding:6px 8px; }
 td{ font-size:11px; padding:6px 8px; }
 table{ min-width:1400px; }
-.middle-action-bar { justify-content: center; }
+.middle-action-bar { flex-direction: column-reverse; gap: 10px; align-items: center; }
 .excel-btn { padding: 8px 14px; font-size: 11.5px; width: 100%; justify-content: center; }
+#pagerControls { margin-right: 0 !important; width: 100%; justify-content: center; }
 }
 </style>
-
 </head>
 
 <body>
@@ -376,6 +395,7 @@ table{ min-width:1400px; }
         <div class="stats-card border-blue">Companies Registered <span id="statCompanies">0</span></div>
         <div class="stats-card border-cyan">Shortlisted by TPO <span id="statTpo">0</span></div>
         <div class="stats-card border-cyan">Shortlisted by Company <span id="statCompanyShort">0</span></div>
+        <div class="stats-card border-cyan">Students Attendance <span id="statAttendance">0</span></div>
         <div class="stats-card border-orange">Paper Test-1 Cleared <span id="statPaper1">0</span></div>
         <div class="stats-card border-orange">Paper Test-2 Cleared <span id="statPaper2">0</span></div>
         <div class="stats-card border-amber">GD Cleared <span id="statGd">0</span></div>
@@ -398,6 +418,7 @@ table{ min-width:1400px; }
         <select id="roleFilter"><option value="">Role Applied</option></select>
         <select id="tpoFilter"><option value="">Shortlisted by TPO</option></select>
         <select id="companyShortlistFilter"><option value="">Shortlisted by Company</option></select>
+        <select id="attendanceFilter"><option value="">Presentees for the drive</option></select>
     </div>
     
     <div class="controls">
@@ -436,10 +457,20 @@ const csvURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRiETxVy0sYxBeApgt
 
 let allData=[];
 let currentFilteredData=[]; 
+let currentPage = 1;
+const rowsPerPage = 50;
 
-let branchKey = "", appliedCompanyKey = "", roleKey = "", tpoKey = "", companyShortlistKey = "";
+let branchKey = "", appliedCompanyKey = "", roleKey = "", tpoKey = "", companyShortlistKey = "", attendanceKey = "";
 let paperTest1Key = "", paperTest2Key = "", rollKey = "", gdKey = "", oa1Key = "", oa2Key = "", oa3Key = "";
 let tech1Key = "", tech2Key = "", hrKey = "", managerialKey = "", finalStatusKey = "";
+
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
 
 Papa.parse(csvURL,{
     download:true,
@@ -459,12 +490,12 @@ Papa.parse(csvURL,{
         roleKey = headers.find(h => h.toLowerCase().trim().includes("profile") || h.toLowerCase().trim().includes("role")) || "";
         tpoKey = headers.find(h => h.toLowerCase().trim().includes("tpo")) || "";
         companyShortlistKey = headers.find(h => h.toLowerCase().trim().includes("shortlist")) || "";
+        attendanceKey = headers.find(h => h.toLowerCase().trim().includes("attendance")) || "";
         rollKey = headers.find(h => h.toLowerCase().trim().includes("roll") || h.toLowerCase().trim().includes("htno")) || "";
         paperTest1Key = headers.find(h => h.toLowerCase().trim().includes("pen") && h.toLowerCase().trim().includes("1")) || "";
         paperTest2Key = headers.find(h => h.toLowerCase().trim().includes("pen") && h.toLowerCase().trim().includes("2")) || "";
         gdKey = headers.find(h => h.toLowerCase().trim().includes("gd") || h.toLowerCase().trim().includes("group discussion")) || "";
         
-        // Comprehensive string matching algorithm to safeguard against varying format styles for OA headers
         oa1Key = headers.find(h => { let s = h.toLowerCase(); return (s.includes("oa") || s.includes("online assessment") || s.includes("online test")) && s.includes("1"); }) || "";
         oa2Key = headers.find(h => { let s = h.toLowerCase(); return (s.includes("oa") || s.includes("online assessment") || s.includes("online test")) && s.includes("2"); }) || "";
         oa3Key = headers.find(h => { let s = h.toLowerCase(); return (s.includes("oa") || s.includes("online assessment") || s.includes("online test")) && s.includes("3"); }) || "";
@@ -476,9 +507,8 @@ Papa.parse(csvURL,{
         finalStatusKey = headers.find(h => h.toLowerCase().trim() === "status" || h.toLowerCase().trim().includes("final status")) || "";
 
         currentFilteredData = [...allData];
-        buildTable(allData);
-        populateFilters(allData);
-        updateStats(allData);
+        populateInitialFilters(allData);
+        updateDashboard();
         setupEventListeners();
     },
     error:function(err){
@@ -487,7 +517,13 @@ Papa.parse(csvURL,{
     }
 });
 
-function buildTable(data){
+function updateDashboard() {
+    buildTable(currentFilteredData, currentPage);
+    updateStats(currentFilteredData);
+    renderPaginationControls();
+}
+
+function buildTable(data, page = 1){
     let thead=document.querySelector("#placementTable thead");
     let tbody=document.querySelector("#placementTable tbody");
     thead.innerHTML=""; tbody.innerHTML="";
@@ -504,7 +540,11 @@ function buildTable(data){
     });
     thead.appendChild(tr);
 
-    data.forEach(row=>{
+    let start = (page - 1) * rowsPerPage;
+    let end = start + rowsPerPage;
+    let pageData = data.slice(start, end);
+
+    pageData.forEach(row=>{
         let tr=document.createElement("tr");
         headers.forEach(h=>{
             let td=document.createElement("td");
@@ -522,19 +562,14 @@ function buildTable(data){
     });
 }
 
-function populateFilters(data){
+function populateInitialFilters(data){
     let getOpts = (key) => key ? [...new Set(data.map(d=>(d[key] || "").trim()).filter(Boolean))].sort() : [];
 
     let fillSel = (id, opts, def) => {
         let el = document.getElementById(id);
         if(!el) return;
-        let currentSelection = el.value;
         el.innerHTML = `<option value="">${def}</option>`;
-        opts.forEach(v => {
-            let opt = new Option(v,v);
-            if(v === currentSelection) opt.selected = true;
-            el.add(opt);
-        });
+        opts.forEach(v => el.add(new Option(v, v)));
     };
 
     fillSel("branchFilter", getOpts(branchKey), "All Branches");
@@ -542,6 +577,7 @@ function populateFilters(data){
     fillSel("roleFilter", getOpts(roleKey), "Role Applied");
     fillSel("tpoFilter", getOpts(tpoKey), "Shortlisted by TPO");
     fillSel("companyShortlistFilter", getOpts(companyShortlistKey), "Shortlisted by Company");
+    fillSel("attendanceFilter", getOpts(attendanceKey), "Presentees for the drive");
     fillSel("paperTest1Filter", getOpts(paperTest1Key), "Pen & Paper Test 1 Status");
     fillSel("paperTest2Filter", getOpts(paperTest2Key), "Pen & Paper Test 2 Status");
     fillSel("gdFilter", getOpts(gdKey), "GD Cleared?");
@@ -562,6 +598,7 @@ function applyFilters() {
     let roleVal = document.getElementById("roleFilter").value;
     let tpoVal = document.getElementById("tpoFilter").value;
     let compShortVal = document.getElementById("companyShortlistFilter").value;
+    let attendanceVal = document.getElementById("attendanceFilter").value;
     let paper1Val = document.getElementById("paperTest1Filter").value;
     let paper2Val = document.getElementById("paperTest2Filter").value;
     let gdVal = document.getElementById("gdFilter").value;
@@ -585,6 +622,7 @@ function applyFilters() {
         if (roleVal && (row[roleKey] || "").trim() !== roleVal) return false;
         if (tpoVal && (row[tpoKey] || "").trim() !== tpoVal) return false;
         if (compShortVal && (row[companyShortlistKey] || "").trim() !== compShortVal) return false;
+        if (attendanceVal && (row[attendanceKey] || "").trim() !== attendanceVal) return false;
         if (paper1Val && (row[paperTest1Key] || "").trim() !== paper1Val) return false;
         if (paper2Val && (row[paperTest2Key] || "").trim() !== paper2Val) return false;
         if (gdVal && (row[gdKey] || "").trim() !== gdVal) return false;
@@ -600,15 +638,38 @@ function applyFilters() {
         return true;
     });
 
-    buildTable(currentFilteredData);
-    populateFilters(currentFilteredData);
-    updateStats(currentFilteredData);
+    currentPage = 1;
+    updateDashboard();
+}
+
+function renderPaginationControls() {
+    let actionBar = document.querySelector(".middle-action-bar");
+    let existingPager = document.getElementById("pagerControls");
+    if(existingPager) existingPager.remove();
+
+    let totalPages = Math.ceil(currentFilteredData.length / rowsPerPage);
+    if(totalPages <= 1) return;
+
+    let pager = document.createElement("div");
+    pager.id = "pagerControls";
+    pager.style.cssText = "display:flex; align-items:center; gap:10px; margin-right:auto; font-size:12px; color:#fff;";
+    
+    pager.innerHTML = `
+        <button id="prevBtn" class="pager-btn" ${currentPage===1?'disabled':''}>◀ Prev</button>
+        <span>Page ${currentPage} of ${totalPages} (${currentFilteredData.length} records)</span>
+        <button id="nextBtn" class="pager-btn" ${currentPage===totalPages?'disabled':''}>Next ▶</button>
+    `;
+    
+    actionBar.insertBefore(pager, actionBar.firstChild);
+
+    document.getElementById("prevBtn").onclick = () => { if(currentPage > 1) { currentPage--; updateDashboard(); }};
+    document.getElementById("nextBtn").onclick = () => { if(currentPage < totalPages) { currentPage++; updateDashboard(); }};
 }
 
 function setupEventListeners() {
     const filterIds = [
         "branchFilter", "appliedCompanyFilter", "roleFilter", "tpoFilter", 
-        "companyShortlistFilter", "paperTest1Filter", "paperTest2Filter", "gdFilter", 
+        "companyShortlistFilter", "attendanceFilter", "paperTest1Filter", "paperTest2Filter", "gdFilter", 
         "oa1Filter", "oa2Filter", "oa3Filter", "tech1Filter", "tech2Filter", 
         "hrFilter", "managerialFilter", "finalStatusFilter"
     ];
@@ -619,13 +680,13 @@ function setupEventListeners() {
     });
     
     let searchEl = document.getElementById("search");
-    if(searchEl) searchEl.addEventListener("input", applyFilters);
+    if(searchEl) searchEl.addEventListener("input", debounce(applyFilters, 300));
 }
 
 function updateStats(data){
     document.getElementById("statRegistrations").innerText = data.length;
     let uniqueComps = new Set();
-    let tpoCount = 0, compShortCount = 0, paper1Count = 0, paper2Count = 0;
+    let tpoCount = 0, compShortCount = 0, attendanceCount = 0, paper1Count = 0, paper2Count = 0;
     let gdCount = 0, oa1Count = 0, oa2Count = 0, oa3Count = 0;
     let tech1Count = 0, tech2Count = 0, hrCount = 0, managerialCount = 0, selectedCount = 0;
 
@@ -635,10 +696,17 @@ function updateStats(data){
         return txt === "yes" || txt === "cleared" || txt === "pass" || txt === "shortlisted";
     };
 
+    let checkPresent = (val) => {
+        if(!val) return false;
+        let txt = String(val).toLowerCase().trim();
+        return txt === "p" || txt === "present";
+    };
+
     data.forEach(row => {
         if (appliedCompanyKey && row[appliedCompanyKey]) uniqueComps.add(row[appliedCompanyKey].toString().trim());
         if (tpoKey && checkYes(row[tpoKey])) tpoCount++;
         if (companyShortlistKey && checkYes(row[companyShortlistKey])) compShortCount++;
+        if (attendanceKey && checkPresent(row[attendanceKey])) attendanceCount++;
         if (paperTest1Key && checkYes(row[paperTest1Key])) paper1Count++;
         if (paperTest2Key && checkYes(row[paperTest2Key])) paper2Count++;
         if (gdKey && checkYes(row[gdKey])) gdCount++;
@@ -655,6 +723,7 @@ function updateStats(data){
     document.getElementById("statCompanies").innerText = uniqueComps.size;
     document.getElementById("statTpo").innerText = tpoCount;
     document.getElementById("statCompanyShort").innerText = compShortCount;
+    document.getElementById("statAttendance").innerText = attendanceCount;
     document.getElementById("statPaper1").innerText = paper1Count;
     document.getElementById("statPaper2").innerText = paper2Count;
     document.getElementById("statGd").innerText = gdCount;
