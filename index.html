@@ -171,7 +171,7 @@ gap: 8px;
 
 .controls{
 display: grid;
-grid-template-columns: repeat(10, 1fr); /* Forms exactly 2 smooth continuous rows on desktop */
+grid-template-columns: repeat(10, 1fr);
 gap: 8px;
 width: 100%;
 }
@@ -191,7 +191,7 @@ color: #222;
 }
 
 .controls input[type="text"] {
-grid-column: span 2; /* Search field scales naturally across 2 layout columns */
+grid-column: span 2;
 }
 
 .controls input:focus,
@@ -700,7 +700,9 @@ function updateStats(data){
             if (tech2Key && checkYes(row[tech2Key])) tech2Count++;
             if (hrKey && checkYes(row[hrKey])) hrCount++;
             if (managerialKey && checkYes(row[managerialKey])) managerialCount++;
-            if (finalStatusKey && String(row[finalStatusKey]).toLowerCase().trim().match(/(selected|placed|hired)/)) selectedCount++;
+            
+            // Evaluates exact instances of the string 'selected' in the status column
+            if (finalStatusKey && String(row[finalStatusKey]).toLowerCase().trim() === "selected") selectedCount++;
         });
 
         document.getElementById("statCompanies").innerText = uniqueComps.size;
