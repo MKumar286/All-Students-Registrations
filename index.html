@@ -496,8 +496,17 @@ Papa.parse(csvURL,{
             oa2Key = headers.find(h => { let s = h.toLowerCase(); return (s.includes("oa") || s.includes("online assessment") || s.includes("online test")) && s.includes("2"); }) || "";
             oa3Key = headers.find(h => { let s = h.toLowerCase(); return (s.includes("oa") || s.includes("online assessment") || s.includes("online test")) && s.includes("3"); }) || "";
             
-            tech1Key = headers.find(h => h.toLowerCase().trim().includes("tech") && h.toLowerCase().trim().includes("1")) || "";
-            tech2Key = headers.find(h => h.toLowerCase().trim().includes("tech") && h.toLowerCase().trim().includes("2")) || "";
+            // Hardened mapping targeting explicitly the Technical Interview structural headers
+            tech1Key = headers.find(h => {
+                let s = h.toLowerCase().trim();
+                return (s.includes("technical interview") || s.includes("tech interview")) && s.includes("1");
+            }) || headers.find(h => h.toLowerCase().trim().includes("tech") && h.toLowerCase().trim().includes("1")) || "";
+
+            tech2Key = headers.find(h => {
+                let s = h.toLowerCase().trim();
+                return (s.includes("technical interview") || s.includes("tech interview")) && s.includes("2");
+            }) || headers.find(h => h.toLowerCase().trim().includes("tech") && h.toLowerCase().trim().includes("2")) || "";
+
             hrKey = headers.find(h => h.toLowerCase().trim().includes("hr")) || "";
             managerialKey = headers.find(h => h.toLowerCase().trim().includes("managerial")) || "";
             finalStatusKey = headers.find(h => h.toLowerCase().trim() === "status" || h.toLowerCase().trim().includes("final status")) || "";
@@ -699,13 +708,12 @@ function updateStats(data){
             if (hrKey && checkYes(row[hrKey])) hrCount++;
             if (managerialKey && checkYes(row[managerialKey])) managerialCount++;
             
-            // Evaluates exact instances of the string 'selected' in final status column
             if (finalStatusKey && String(row[finalStatusKey]).toLowerCase().trim() === "selected") selectedCount++;
 
-            // Evaluates strict 'yes' entries only for Technical Round 1
+            // Strictly matches instances containing 'yes' inside the exact Technical Interview Round-1 column
             if (tech1Key && String(row[tech1Key]).toLowerCase().trim() === "yes") tech1Count++;
 
-            // Evaluates strict 'yes' entries only for Technical Round 2
+            // Strictly matches instances containing 'yes' inside the exact Technical Interview Round-2 column
             if (tech2Key && String(row[tech2Key]).toLowerCase().trim() === "yes") tech2Count++;
         });
 
